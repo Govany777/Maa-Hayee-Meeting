@@ -5,30 +5,20 @@ let isInitialized = false;
 export default async (req: any, res: any) => {
     try {
         if (!isInitialized) {
-            console.log("[Vercel] Starting server initialization...");
+            console.log("Starting server...");
             await startServer();
             isInitialized = true;
-            console.log("[Vercel] Server initialized successfully");
         }
-        // Set some headers to help with trpc/json
-        res.setHeader('Content-Type', 'application/json');
-        return app(req, res);
-    } catch (e: any) {
-        console.error("[Vercel] CRITICAL FAILURE:", e);
-        // If it's a trpc request, try to return a trpc-compatible error
-        if (req.url?.includes('trpc')) {
-            return res.status(500).json([{
-                error: {
-                    message: "Server failed to start: " + e.message,
-                    code: -32000,
-                    data: { stack: e.stack }
-                }
-            }]);
-        }
-        return res.status(500).json({
-            error: "Critical Initialization Error",
-            message: e.message,
-            stack: e.stack
+
+        // This allows TRPC and other JSON requests to pass correctly
+        return new Promise((resolve, reject) => {
+            app(req, res, (err: any) => {
+                if (err) return reject(err);
+                resolve(res);
+            });
         });
+    } catch (error: any) {
+        console.error("Vercel Function Error:", error);
+        res.status(500).send(`Server Error: ${error.message}\n${error.stack}`);
     }
 };
