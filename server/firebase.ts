@@ -12,9 +12,18 @@ if (getApps().length === 0) {
     let initialized = false;
 
     // 1. Try environment variable JSON
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    const envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (envJson) {
         try {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+            // Clean the string in case it has weird characters or literal \n
+            let cleanJson = envJson.trim();
+            const serviceAccount = JSON.parse(cleanJson);
+
+            // Fix private_key if newlines are escaped
+            if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
+                serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+            }
+
             initializeApp({
                 credential: cert(serviceAccount),
                 storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
@@ -22,48 +31,38 @@ if (getApps().length === 0) {
             console.log("[Firebase] Initialized with FIREBASE_SERVICE_ACCOUNT_JSON");
             initialized = true;
         } catch (e) {
-            console.error("[Firebase] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON", e);
+            console.error("[Firebase] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", e);
         }
     }
 
-    // 2. Try service-account.json file
+    // 2. Try service-account.json file as fallback
     if (!initialized && existsSync(resolvedPath)) {
         try {
             const fileContent = readFileSync(resolvedPath, "utf-8");
             const serviceAccount = JSON.parse(fileContent);
 
-            if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
-                console.error("[Firebase] Service account file is missing required fields (project_id, client_email, or private_key).");
-            } else {
+            if (serviceAccount.project_id && serviceAccount.client_email && serviceAccount.private_key) {
                 initializeApp({
                     credential: cert(serviceAccount),
                     storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
                 });
-                console.log(`[Firebase] Initialized with service account from ${serviceAccountPath}`);
-                console.log(`[Firebase] Project ID: ${serviceAccount.project_id}`);
-                console.log(`[Firebase] Client Email: ${serviceAccount.client_email}`);
+                console.log(`[Firebase] Initialized with service account file`);
                 initialized = true;
             }
         } catch (e) {
-            console.error("[Firebase] Failed to load service account file", e);
+            console.error("[Firebase] Failed to load service account file:", e);
         }
     }
 
-    // 3. Fallback to default credentials (e.g. emulator or GCloud CLI)
+    // 3. Fallback to default
     if (!initialized) {
-        console.log("[Firebase] Using default credentials or emulator...");
         try {
             initializeApp();
+            console.log("[Firebase] Initialized with default credentials");
             initialized = true;
         } catch (e) {
-            console.error("[Firebase] Default initialization failed", e);
+            console.error("[Firebase] All initialization attempts failed.");
         }
-    }
-
-    if (!initialized) {
-        console.warn("[Firebase] WARNING: Firebase Admin not initialized. Database operations will fail.");
-        // Attempt one last time to avoid crash on export, though it might fail on usage
-        try { initializeApp(); } catch (e) { }
     }
 }
 
