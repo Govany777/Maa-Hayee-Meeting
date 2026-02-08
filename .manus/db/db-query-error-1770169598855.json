@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE members ADD COLUMN memberIdSequential INT AUTO_INCREMENT UNIQUE AFTER memberId",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user mKoCdVQE2skGS29.root --database 4Dzt26gn6eFuzCE2K6nPeo --execute ALTER TABLE members ADD COLUMN memberIdSequential INT AUTO_INCREMENT UNIQUE AFTER memberId",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 1: unsupported add column 'memberidsequential' constraint AUTO_INCREMENT when altering '4Dzt26gn6eFuzCE2K6nPeo.members'"
+  ]
+}

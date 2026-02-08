@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE members ADD COLUMN memberIdSequential INT AFTER memberId",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user mKoCdVQE2skGS29.root --database 4Dzt26gn6eFuzCE2K6nPeo --execute ALTER TABLE members ADD COLUMN memberIdSequential INT AFTER memberId",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1995
+}

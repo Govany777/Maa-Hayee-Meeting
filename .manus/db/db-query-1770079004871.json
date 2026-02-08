@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS memberAccounts (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  memberId INT NOT NULL UNIQUE,\n  username VARCHAR(100) NOT NULL UNIQUE,\n  password VARCHAR(255) NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user mKoCdVQE2skGS29.root --database 4Dzt26gn6eFuzCE2K6nPeo --execute CREATE TABLE IF NOT EXISTS memberAccounts (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  memberId INT NOT NULL UNIQUE,\n  username VARCHAR(100) NOT NULL UNIQUE,\n  password VARCHAR(255) NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1686
+}
