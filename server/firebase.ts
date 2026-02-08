@@ -1,4 +1,4 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { initializeApp, getApps, cert, getApp } from "firebase-admin/app";
 import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { readFileSync, existsSync } from "fs";
@@ -8,64 +8,58 @@ import "dotenv/config";
 const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "./service-account.json";
 const resolvedPath = resolve(process.cwd(), serviceAccountPath);
 
-if (getApps().length === 0) {
-    let initialized = false;
+// Initialization function
+export const initFirebase = () => {
+    if (getApps().length > 0) return getApp();
 
-    // 1. Try environment variable JSON
+    let initialized = false;
     const envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
     if (envJson) {
         try {
-            // Clean the string in case it has weird characters or literal \n
-            let cleanJson = envJson.trim();
-            const serviceAccount = JSON.parse(cleanJson);
-
-            // Fix private_key if newlines are escaped
-            if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
+            const serviceAccount = JSON.parse(envJson.trim());
+            if (serviceAccount.private_key) {
                 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
             }
-
             initializeApp({
                 credential: cert(serviceAccount),
                 storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
             });
-            console.log("[Firebase] Initialized with FIREBASE_SERVICE_ACCOUNT_JSON");
+            console.log("[Firebase] Initialized with ENV JSON");
             initialized = true;
         } catch (e) {
-            console.error("[Firebase] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", e);
+            console.error("[Firebase] ENV JSON parse failed:", e);
         }
     }
 
-    // 2. Try service-account.json file as fallback
     if (!initialized && existsSync(resolvedPath)) {
         try {
-            const fileContent = readFileSync(resolvedPath, "utf-8");
-            const serviceAccount = JSON.parse(fileContent);
-
-            if (serviceAccount.project_id && serviceAccount.client_email && serviceAccount.private_key) {
-                initializeApp({
-                    credential: cert(serviceAccount),
-                    storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
-                });
-                console.log(`[Firebase] Initialized with service account file`);
-                initialized = true;
-            }
+            const serviceAccount = JSON.parse(readFileSync(resolvedPath, "utf-8"));
+            initializeApp({
+                credential: cert(serviceAccount),
+                storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
+            });
+            console.log("[Firebase] Initialized with local file");
+            initialized = true;
         } catch (e) {
-            console.error("[Firebase] Failed to load service account file:", e);
+            console.error("[Firebase] Local file failed:", e);
         }
     }
 
-    // 3. Fallback to default
     if (!initialized) {
         try {
             initializeApp();
-            console.log("[Firebase] Initialized with default credentials");
-            initialized = true;
+            console.log("[Firebase] Initialized with defaults");
         } catch (e) {
-            console.error("[Firebase] All initialization attempts failed.");
+            console.error("[Firebase] All ways failed");
         }
     }
-}
+};
 
+// Start initialization immediately
+initFirebase();
+
+// Export proxies for db and storage to avoid top-level null issues
 export const db = getFirestore();
 export const storage = getStorage();
 export { Timestamp, FieldValue };
