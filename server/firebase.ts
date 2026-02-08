@@ -1,5 +1,5 @@
 import { initializeApp, getApps, cert, getApp } from "firebase-admin/app";
-import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
@@ -8,58 +8,63 @@ import "dotenv/config";
 const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "./service-account.json";
 const resolvedPath = resolve(process.cwd(), serviceAccountPath);
 
-// Initialization function
-export const initFirebase = () => {
+// Pure function to initialize
+function initializeFirebaseAdmin() {
     if (getApps().length > 0) return getApp();
 
-    let initialized = false;
     const envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-
     if (envJson) {
         try {
             const serviceAccount = JSON.parse(envJson.trim());
             if (serviceAccount.private_key) {
                 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
             }
-            initializeApp({
+            return initializeApp({
                 credential: cert(serviceAccount),
                 storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
             });
-            console.log("[Firebase] Initialized with ENV JSON");
-            initialized = true;
         } catch (e) {
-            console.error("[Firebase] ENV JSON parse failed:", e);
+            console.error("[Firebase] Failed to initialize from ENV JSON:", e);
         }
     }
 
-    if (!initialized && existsSync(resolvedPath)) {
+    if (existsSync(resolvedPath)) {
         try {
             const serviceAccount = JSON.parse(readFileSync(resolvedPath, "utf-8"));
-            initializeApp({
+            return initializeApp({
                 credential: cert(serviceAccount),
                 storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
             });
-            console.log("[Firebase] Initialized with local file");
-            initialized = true;
         } catch (e) {
-            console.error("[Firebase] Local file failed:", e);
+            console.error("[Firebase] Failed to initialize from local file:", e);
         }
     }
 
-    if (!initialized) {
-        try {
-            initializeApp();
-            console.log("[Firebase] Initialized with defaults");
-        } catch (e) {
-            console.error("[Firebase] All ways failed");
-        }
+    // Last resort
+    try {
+        return initializeApp();
+    } catch (e) {
+        console.error("[Firebase] All initialization attempts failed.");
+        return null;
     }
-};
+}
 
-// Start initialization immediately
-initFirebase();
+// Global initialization
+initializeFirebaseAdmin();
 
-// Export proxies for db and storage to avoid top-level null issues
-export const db = getFirestore();
-export const storage = getStorage();
-export { Timestamp, FieldValue };
+// Proxies to prevent top-level crashes
+export const db = {
+    collection: (name: string) => {
+        if (getApps().length === 0) throw new Error("Firebase not initialized");
+        return getFirestore().collection(name);
+    }
+} as any;
+
+export const storage = {
+    bucket: () => {
+        if (getApps().length === 0) throw new Error("Firebase not initialized");
+        return getStorage().bucket();
+    }
+} as any;
+
+export { Timestamp, FieldValue } from "firebase-admin/firestore";

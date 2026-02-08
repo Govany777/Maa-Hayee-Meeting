@@ -52,7 +52,8 @@ export async function startServer() {
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
-  } else {
+  } else if (!process.env.VERCEL) {
+    // Only serve static files locally, on Vercel we let Vercel handle it via rewrites
     serveStatic(app);
   }
 
