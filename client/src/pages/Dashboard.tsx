@@ -170,12 +170,14 @@ export default function Dashboard() {
 
   const utils = trpc.useUtils();
   const membersQuery = trpc.admin.getAllMembers.useQuery(undefined, {
-    refetchInterval: 3000, // Faster polling for real-time (3 seconds)
+    refetchInterval: 2000,
     retry: 3,
+    staleTime: 0,
   });
   const attendanceQuery = trpc.attendance.getAllAttendance.useQuery(undefined, {
-    refetchInterval: 5000,
+    refetchInterval: 2000,
     retry: 3,
+    staleTime: 0,
   });
   const createMemberMutation = trpc.admin.createMember.useMutation();
   const updateMemberMutation = trpc.admin.updateMember.useMutation();
