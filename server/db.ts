@@ -224,10 +224,16 @@ export async function getAllMembers(): Promise<Member[]> {
 
 export async function updateMember(id: string, data: Partial<InsertMember>): Promise<Member | null> {
   const memberRef = db.collection(MEMBERS_COLLECTION).doc(id);
-  await memberRef.update({
-    ...data,
-    updatedAt: new Date()
+
+  // Remove undefined fields to avoid Firestore errors
+  const updateData: any = { updatedAt: new Date() };
+  Object.keys(data).forEach(key => {
+    if ((data as any)[key] !== undefined) {
+      updateData[key] = (data as any)[key];
+    }
   });
+
+  await memberRef.update(updateData);
   return getMemberById(id);
 }
 

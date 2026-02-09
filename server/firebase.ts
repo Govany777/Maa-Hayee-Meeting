@@ -15,16 +15,17 @@ function initializeFirebaseAdmin() {
     if (envJson) {
         try {
             const serviceAccount = JSON.parse(envJson.trim());
-            console.log("[Firebase] Attempting to initialize with Project ID:", serviceAccount.project_id);
-
             if (serviceAccount.private_key) {
                 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
             }
 
+            const bucketName = process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`;
+            console.log("[Firebase] Initializing with Project ID:", serviceAccount.project_id, "Bucket:", bucketName);
+
             return initializeApp({
                 credential: cert(serviceAccount),
                 projectId: serviceAccount.project_id,
-                storageBucket: `${serviceAccount.project_id}.appspot.com` // Try standard .appspot.com first
+                storageBucket: bucketName
             });
         } catch (e: any) {
             console.error("[Firebase] Critical Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Make sure you pasted the ENTIRE JSON content.");
@@ -35,11 +36,12 @@ function initializeFirebaseAdmin() {
     if (existsSync(resolvedPath)) {
         try {
             const serviceAccount = JSON.parse(readFileSync(resolvedPath, "utf-8"));
-            console.log("[Firebase] Initializing with local file, Project ID:", serviceAccount.project_id);
+            const bucketName = process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`;
+            console.log("[Firebase] Initializing with local file, Project ID:", serviceAccount.project_id, "Bucket:", bucketName);
             return initializeApp({
                 credential: cert(serviceAccount),
                 projectId: serviceAccount.project_id,
-                storageBucket: `${serviceAccount.project_id}.appspot.com`
+                storageBucket: bucketName
             });
         } catch (e: any) {
             console.error("[Firebase] Failed to load local service account file:", e.message);

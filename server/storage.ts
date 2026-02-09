@@ -26,7 +26,7 @@ export async function storagePut(
     try {
       await file.makePublic();
       console.log("[Storage] File made public successfully");
-    } catch (e) {
+    } catch (e: any) {
       console.warn("[Storage] makePublic failed (might already be public):", e.message);
     }
 

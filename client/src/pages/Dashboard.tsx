@@ -16,6 +16,10 @@ import {
   Camera,
   UserPlus,
   QrCode,
+  Upload,
+  Edit2,
+  Trash2,
+  X,
 } from "lucide-react";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
 import { useLocation } from "wouter";
