@@ -23,8 +23,8 @@ function initializeFirebaseAdmin() {
 
             return initializeApp({
                 credential: cert(serviceAccount),
-                projectId: serviceAccount.project_id, // Explicitly set Project ID
-                storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
+                projectId: serviceAccount.project_id,
+                storageBucket: `${serviceAccount.project_id}.appspot.com` // Try standard .appspot.com first
             });
         } catch (e: any) {
             console.error("[Firebase] Critical Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Make sure you pasted the ENTIRE JSON content.");
@@ -39,7 +39,7 @@ function initializeFirebaseAdmin() {
             return initializeApp({
                 credential: cert(serviceAccount),
                 projectId: serviceAccount.project_id,
-                storageBucket: `${serviceAccount.project_id}.firebasestorage.app`
+                storageBucket: `${serviceAccount.project_id}.appspot.com`
             });
         } catch (e: any) {
             console.error("[Firebase] Failed to load local service account file:", e.message);

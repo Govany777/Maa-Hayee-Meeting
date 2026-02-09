@@ -128,15 +128,18 @@ export default function MemberDashboard() {
 
     setIsLoading(true);
     try {
+      console.log("[Dashboard] Starting image upload for memberId:", memberSession.memberId);
       const uploadResult = await uploadMutation.mutateAsync({
         base64: dataUrl,
         fileName: `profile-${memberSession.memberId}-${Date.now()}.jpg`
       });
+      console.log("[Dashboard] Image uploaded to storage, URL:", uploadResult.url);
 
-      await updateProfileMutation.mutateAsync({
+      const updatedMember = await updateProfileMutation.mutateAsync({
         memberId: memberSession.memberId,
         imageUrl: uploadResult.url
       });
+      console.log("[Dashboard] Database updated with new image URL");
 
       // Update session storage
       const updatedSession = { ...memberSession, imageUrl: uploadResult.url };

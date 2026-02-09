@@ -15,39 +15,48 @@ export async function storagePut(
   const fileName = relKey.split('/').pop() || `file-${Date.now()}.jpg`;
 
   try {
-    // 1. Try Firebase Storage
+    console.log("[Storage] Attempting to save to Firebase Storage:", relKey);
     const bucket = storage.bucket();
-    // Default bucket name is often project-id.appspot.com or project-id.firebasestorage.app
-    // If not set, this might fail unless initialized with a bucket name.
-
     const file = bucket.file(relKey);
     await file.save(data instanceof Buffer ? data : Buffer.from(data), {
       metadata: { contentType },
-      public: true, // Try to make it public
+      public: true,
     });
 
-    // Make it public if not already done by save
-    try { await file.makePublic(); } catch (e) { /* ignore if fails */ }
+    try {
+      await file.makePublic();
+      console.log("[Storage] File made public successfully");
+    } catch (e) {
+      console.warn("[Storage] makePublic failed (might already be public):", e.message);
+    }
 
     const url = `https://storage.googleapis.com/${bucket.name}/${relKey}`;
+    console.log("[Storage] Successfully saved to Firebase, URL:", url);
     return { key: relKey, url };
-  } catch (error) {
-    console.error("Firebase Storage failed, falling back to local storage:", error);
+  } catch (error: any) {
+    console.error("[Storage] Firebase Storage failed:", error.message);
+    console.log("[Storage] Falling back to local storage...");
 
-    // 2. Fallback to Local Storage
-    // Create 'uploads' directory if it doesn't exist
     const uploadsDir = path.resolve(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+      try {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        console.log("[Storage] Created local uploads directory");
+      } catch (mkdirError: any) {
+        console.error("[Storage] Failed to create uploads directory:", mkdirError.message);
+      }
     }
 
     const localPath = path.join(uploadsDir, fileName);
-    fs.writeFileSync(localPath, data instanceof Buffer ? data : Buffer.from(data as string));
-
-    // The URL will be /uploads/filename
-    // We need to make sure the express app serves this folder
-    const url = `/uploads/${fileName}`;
-    return { key: relKey, url };
+    try {
+      fs.writeFileSync(localPath, data instanceof Buffer ? data : Buffer.from(data as string));
+      console.log("[Storage] Saved file locally to:", localPath);
+      const url = `/uploads/${fileName}`;
+      return { key: relKey, url };
+    } catch (writeError: any) {
+      console.error("[Storage] Failed to write file locally:", writeError.message);
+      throw writeError;
+    }
   }
 }
 
