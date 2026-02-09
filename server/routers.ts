@@ -83,8 +83,9 @@ export const appRouter = router({
 
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: true,
           sameSite: "lax",
+          path: "/",
           maxAge: ONE_YEAR_MS,
         });
 

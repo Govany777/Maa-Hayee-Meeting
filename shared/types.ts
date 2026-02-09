@@ -61,7 +61,7 @@ export interface Member {
 }
 
 export interface InsertMember {
-    memberId: string;
+    memberId?: string;
     memberIdSequential?: number;
     name: string;
     email?: string | null;

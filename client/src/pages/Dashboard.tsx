@@ -170,10 +170,12 @@ export default function Dashboard() {
 
   const utils = trpc.useUtils();
   const membersQuery = trpc.admin.getAllMembers.useQuery(undefined, {
-    refetchInterval: 5000, // Poll database every 5 seconds for real-time updates
+    refetchInterval: 3000, // Faster polling for real-time (3 seconds)
+    retry: 3,
   });
   const attendanceQuery = trpc.attendance.getAllAttendance.useQuery(undefined, {
-    refetchInterval: 8000, // Update attendance list every 8 seconds
+    refetchInterval: 5000,
+    retry: 3,
   });
   const createMemberMutation = trpc.admin.createMember.useMutation();
   const updateMemberMutation = trpc.admin.updateMember.useMutation();
@@ -457,7 +459,12 @@ export default function Dashboard() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {allMembers.length > 0 ? (
+                {membersQuery.isLoading ? (
+                  <div className="col-span-full py-20 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-slate-500">جاري تحميل الأعضاء...</p>
+                  </div>
+                ) : allMembers.length > 0 ? (
                   allMembers.map((member: any) => (
                     <MemberCard
                       key={member.id}
