@@ -98,7 +98,7 @@ export const appRouter = router({
     createMember: protectedProcedure
       .input(
         z.object({
-          memberId: z.string().min(1),
+          memberId: z.string().optional(),
           name: z.string().min(1),
           phone: z.string().optional(),
           dateOfBirth: z.date().optional(),
