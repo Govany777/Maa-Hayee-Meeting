@@ -101,6 +101,11 @@ export default function MembersRegistration() {
       return;
     }
 
+    if (formData.phone.length !== 11) {
+      setError("رقم الهاتف يجب أن يكون 11 رقم بالضبط");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("كلمات المرور غير متطابقة");
       return;
@@ -317,8 +322,11 @@ export default function MembersRegistration() {
                 <Input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="أدخل رقم الهاتف"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    setFormData({ ...formData, phone: val });
+                  }}
+                  placeholder="أدخل رقم الهاتف (11 رقم)"
                   className="pr-10"
                   disabled={isLoading}
                 />

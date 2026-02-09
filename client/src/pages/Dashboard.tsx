@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  User,
   Users,
   Search,
   Plus,
@@ -47,7 +48,7 @@ export default function Dashboard() {
   // Member Form State
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
-  const [viewingMember, setViewingMember] = useState<any>(null); // New state for viewing details
+  const [viewingQr, setViewingQr] = useState<any>(null); // Dedicated QR view
   const [memberForm, setMemberForm] = useState({
     name: "",
     phone: "",
@@ -177,6 +178,12 @@ export default function Dashboard() {
 
   const handleSubmitMember = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (memberForm.phone && memberForm.phone.length !== 11) {
+      toast.error("رقم الهاتف يجب أن يكون 11 رقم بالضبط");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let finalImageUrl = memberImage;
@@ -321,26 +328,34 @@ export default function Dashboard() {
                         <div className="absolute top-2 left-2 bg-white/90 p-1 rounded-lg shadow-md z-10 scale-90 origin-top-left">
                           <QRCodeGenerator value={member.memberId || member.id} size={40} includeMargin={false} />
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-4">
-                          <div className="flex gap-2">
-                            <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => setViewingMember(member)}>
-                              <Search className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => openEditMember(member)}>
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="destructive" className="h-8 w-8 rounded-full" onClick={() => handleDeleteMember(member.id, member.name)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          {/* QR Code integrated into the card hover view */}
-                          <div className="bg-white p-1 rounded shadow-sm">
-                            <QRCodeGenerator
-                              value={member.memberId || member.memberIdSequential?.toString() || ""}
-                              size={50}
-                              includeMargin={false}
-                            />
-                          </div>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            onClick={() => setViewingQr(member)}
+                            title="عرض كود QR"
+                          >
+                            <QrCode className="h-6 w-6" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            onClick={() => openEditMember(member)}
+                            title="تعديل البيانات"
+                          >
+                            <Edit2 className="h-6 w-6" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            onClick={() => handleDeleteMember(member.id, member.name)}
+                            title="حذف العضو"
+                          >
+                            <Trash2 className="h-6 w-6" />
+                          </Button>
                         </div>
                       </div>
 
@@ -494,7 +509,11 @@ export default function Dashboard() {
                 <label className="text-sm font-bold text-slate-700">رقم الموبايل</label>
                 <Input
                   value={memberForm.phone}
-                  onChange={e => setMemberForm({ ...memberForm, phone: e.target.value })}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    setMemberForm({ ...memberForm, phone: val });
+                  }}
+                  placeholder="01xxxxxxxxx"
                 />
               </div>
               <div className="space-y-2">
@@ -539,64 +558,33 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Member Details View Dialog */}
-      <Dialog open={!!viewingMember} onOpenChange={() => setViewingMember(null)}>
-        <DialogContent className="max-w-2xl bg-white rounded-xl overflow-hidden p-0" dir="rtl">
-          {viewingMember && (
-            <div className="flex flex-col md:flex-row">
-              <div className="w-full md:w-1/3 bg-slate-50 p-8 flex flex-col items-center border-l border-slate-100">
-                <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg mb-6">
-                  {viewingMember.imageUrl ? (
-                    <img src={viewingMember.imageUrl} className="w-full h-full object-cover" alt={viewingMember.name} />
-                  ) : (
-                    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
-                      <User size={64} />
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 text-center mb-2">{viewingMember.name}</h3>
-                <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold">ID: {viewingMember.memberId || viewingMember.memberIdSequential}</span>
+      {/* QR Code Dialog */}
+      <Dialog open={!!viewingQr} onOpenChange={() => setViewingQr(null)}>
+        <DialogContent className="max-w-md bg-white rounded-2xl p-0 overflow-hidden" dir="rtl">
+          {viewingQr && (
+            <div className="p-8 flex flex-col items-center space-y-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-bold text-slate-800">{viewingQr.name}</h3>
+                <p className="text-slate-500">كود الحضور الرقمي</p>
               </div>
 
-              <div className="flex-1 p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label className="text-slate-400 text-xs uppercase mb-1 block">رقم الموبايل</Label>
-                    <p className="font-semibold">{viewingMember.phone || "غير متوفر"}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-xs uppercase mb-1 block">تاريخ الميلاد</Label>
-                    <p className="font-semibold">{viewingMember.dateOfBirth ? new Date(viewingMember.dateOfBirth).toLocaleDateString('ar-EG') : "غير متوفر"}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-xs uppercase mb-1 block">اب الاعتراف</Label>
-                    <p className="font-semibold">{viewingMember.fatherOfConfession || "غير متوفر"}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-xs uppercase mb-1 block">اسم المستخدم</Label>
-                    <p className="font-semibold text-blue-600">@{viewingMember.username || "لا يوجد حساب"}</p>
-                  </div>
-                </div>
-
-                <div className="border-t pt-6">
-                  <Label className="text-slate-400 text-xs uppercase mb-1 block">العنوان</Label>
-                  <p className="font-semibold">{viewingMember.address || "غير متوفر"}</p>
-                </div>
-
-                <div className="bg-blue-50 p-6 rounded-xl flex items-center justify-between border border-blue-100">
-                  <div>
-                    <h4 className="font-bold text-blue-800 mb-1">كود الحضور (QR)</h4>
-                    <p className="text-xs text-blue-600">يمكن استخدامه لتسجيل الحضور</p>
-                  </div>
-                  <div className="bg-white p-2 rounded-lg shadow-sm">
-                    <QRCodeGenerator value={viewingMember.memberId || viewingMember.memberIdSequential?.toString() || ""} size={100} />
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <Button onClick={() => setViewingMember(null)} variant="outline" className="w-full">إغلاق</Button>
-                </DialogFooter>
+              <div className="p-6 bg-slate-50 rounded-3xl border-2 border-slate-100 shadow-inner">
+                <QRCodeGenerator
+                  value={viewingQr.memberId || viewingQr.memberIdSequential?.toString() || viewingQr.id}
+                  size={240}
+                />
               </div>
+
+              <div className="w-full bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center">
+                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Coded ID</span>
+                <span className="text-2xl font-mono font-black text-blue-700">
+                  {viewingQr.memberId || viewingQr.memberIdSequential || viewingQr.id}
+                </span>
+              </div>
+
+              <Button onClick={() => setViewingQr(null)} className="w-full h-12 text-lg font-bold bg-slate-900 hover:bg-black text-white rounded-xl">
+                إغلاق
+              </Button>
             </div>
           )}
         </DialogContent>

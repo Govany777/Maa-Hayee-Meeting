@@ -208,16 +208,16 @@ export async function getMemberByPhone(phone: string): Promise<Member | null> {
 }
 
 
-export async function getAllMembers(): Promise<Member[]> {
-  const snapshot = await db.collection(MEMBERS_COLLECTION).where("status", "==", "active").get();
-  return snapshot.docs.map(doc => {
+export async function getMembers(): Promise<Member[]> {
+  const snapshot = await db.collection(MEMBERS_COLLECTION).get();
+  return snapshot.docs.map((doc: any) => {
     const data = doc.data();
     return {
       id: doc.id,
       ...data,
-      createdAt: toDate(data.createdAt),
-      updatedAt: toDate(data.updatedAt),
-      dateOfBirth: data.dateOfBirth ? toDate(data.dateOfBirth) : null,
+      createdAt: toDate(data?.createdAt),
+      updatedAt: toDate(data?.updatedAt),
+      dateOfBirth: data?.dateOfBirth ? toDate(data.dateOfBirth) : null,
     } as Member;
   });
 }
@@ -270,7 +270,7 @@ export async function recordAttendance(data: InsertAttendanceRecord): Promise<At
 
 export async function getAttendanceByMemberId(memberId: string): Promise<AttendanceRecord[]> {
   const snapshot = await db.collection(ATTENDANCE_COLLECTION).where("memberId", "==", memberId).get();
-  return snapshot.docs.map(doc => {
+  return snapshot.docs.map((doc: any) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -282,8 +282,8 @@ export async function getAttendanceByMemberId(memberId: string): Promise<Attenda
 }
 
 export async function getAllAttendanceRecords(): Promise<AttendanceRecord[]> {
-  const snapshot = await db.collection(ATTENDANCE_COLLECTION).get();
-  return snapshot.docs.map(doc => {
+  const snapshot = await db.collection(ATTENDANCE_COLLECTION).orderBy("attendanceDate", "desc").get();
+  return snapshot.docs.map((doc: any) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -393,16 +393,16 @@ export async function getNextMemberId(): Promise<number> {
 }
 
 export async function getMembersWithAccounts(): Promise<any[]> {
-  const membersSnapshot = await db.collection(MEMBERS_COLLECTION).where("status", "==", "active").get();
+  const membersSnapshot = await db.collection(MEMBERS_COLLECTION).get();
   const accountsSnapshot = await db.collection(MEMBER_ACCOUNTS_COLLECTION).get();
 
   const accountsMap = new Map();
-  accountsSnapshot.docs.forEach(doc => {
+  accountsSnapshot.docs.forEach((doc: any) => {
     const data = doc.data();
     accountsMap.set(data.memberId, data);
   });
 
-  return membersSnapshot.docs.map(doc => {
+  return membersSnapshot.docs.map((doc: any) => {
     const data = doc.data();
     const account = accountsMap.get(doc.id);
     return {
