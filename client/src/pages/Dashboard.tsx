@@ -1,3 +1,4 @@
+// Last Sync: 2026-02-09 - Force sync dashboard updates
 import { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
