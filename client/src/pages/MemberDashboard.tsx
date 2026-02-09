@@ -400,18 +400,18 @@ export default function MemberDashboard() {
                 هوية الحضور الرقمية
               </h3>
 
-              <div className="p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-inner">
+              <div className="p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-inner text-center">
                 <QRCodeGenerator
-                  value={memberSession.sequentialId || memberSession.memberId}
+                  value={profileQuery.data?.memberId || memberSession.sequentialId || memberSession.memberId}
                   size={180}
-                  className="rounded-lg"
+                  className="rounded-lg mx-auto"
                 />
               </div>
 
               <div className="text-center">
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Coded ID</p>
                 <p className="text-lg font-mono font-bold text-blue-600 bg-blue-50 px-4 py-1 rounded-full border border-blue-100">
-                  {memberSession.sequentialId || memberSession.memberId}
+                  {profileQuery.data?.memberId || memberSession.sequentialId || memberSession.memberId}
                 </p>
               </div>
 

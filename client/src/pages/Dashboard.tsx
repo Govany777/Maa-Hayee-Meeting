@@ -346,10 +346,23 @@ export default function Dashboard() {
 
                       <div className="p-5">
                         <div className="flex flex-col mb-3">
-                          <h4 className="font-bold text-lg text-slate-800 line-clamp-1">{member.name}</h4>
-                          <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded w-fit">
-                            ID: {member.memberId || member.memberIdSequential}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-lg text-slate-800 line-clamp-1">{member.name}</h4>
+                            {member.hasAccount && (
+                              <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                <UserCheck className="w-2.5 h-2.5" />
+                                حساب مفعل
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-2 items-center mt-1">
+                            <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded w-fit">
+                              ID: {member.memberId || member.memberIdSequential}
+                            </span>
+                            {member.username && (
+                              <span className="text-[10px] font-medium text-slate-400">@{member.username}</span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="space-y-2 text-sm text-slate-600">
@@ -588,7 +601,7 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }
 
