@@ -57,6 +57,10 @@ export const db = {
     collection: (name: string) => {
         if (getApps().length === 0) throw new Error("Firebase not initialized");
         return getFirestore().collection(name);
+    },
+    runTransaction: (updateFunction: any) => {
+        if (getApps().length === 0) throw new Error("Firebase not initialized");
+        return getFirestore().runTransaction(updateFunction);
     }
 } as any;
 
