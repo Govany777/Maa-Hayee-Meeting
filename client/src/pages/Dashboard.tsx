@@ -168,12 +168,27 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const utils = trpc.useUtils();
-  const membersQuery = trpc.admin.getAllMembers.useQuery();
-  const attendanceQuery = trpc.attendance.getAllAttendance.useQuery();
+  const membersQuery = trpc.admin.getAllMembers.useQuery(undefined, {
+    refetchInterval: 5000, // Poll database every 5 seconds for real-time updates
+  });
+  const attendanceQuery = trpc.attendance.getAllAttendance.useQuery(undefined, {
+    refetchInterval: 8000, // Update attendance list every 8 seconds
+  });
   const createMemberMutation = trpc.admin.createMember.useMutation();
   const updateMemberMutation = trpc.admin.updateMember.useMutation();
   const deleteMemberMutation = trpc.admin.deleteMember.useMutation();
   const uploadMutation = trpc.members.uploadImage.useMutation();
+
+  // Redirect if no session found locally (optional extra guard)
+  useMemo(() => {
+    if (typeof window !== "undefined") {
+      const session = sessionStorage.getItem("adminSession");
+      if (!session) {
+        // No local session, but tRPC will handle the final auth check via cookie
+        console.log("No adminSession found in sessionStorage");
+      }
+    }
+  }, []);
 
   const allMembers = membersQuery.data || [];
   const allAttendance = attendanceQuery.data || [];
