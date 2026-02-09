@@ -40,6 +40,112 @@ const MONTHS_AR = [
   "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
 ];
 
+// Helper Component for Member Card
+function MemberCard({ member, onEdit, onDelete, onViewQr }: any) {
+  return (
+    <Card className="p-0 overflow-hidden group hover:shadow-xl transition-all duration-300 border-none bg-white shadow-sm">
+      <div className="relative aspect-square bg-white border-b border-slate-50 italic">
+        {member.imageUrl ? (
+          <img
+            src={member.imageUrl}
+            alt={member.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&size=256`;
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-200 bg-slate-50">
+            <User className="w-16 h-16" />
+            <span className="text-[10px] font-bold uppercase mt-2 tracking-widest text-slate-300">No Image</span>
+          </div>
+        )}
+        <div className="absolute top-2 left-2 bg-white/90 p-1 rounded-lg shadow-md z-10 scale-90 origin-top-left">
+          <QRCodeGenerator value={member.memberId || member.memberIdSequential?.toString() || member.id} size={40} includeMargin={false} />
+        </div>
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
+            onClick={() => onViewQr(member)}
+            title="عرض كود QR"
+          >
+            <QrCode className="h-6 w-6" />
+          </Button>
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
+            onClick={() => onEdit(member)}
+            title="تعديل البيانات"
+          >
+            <Edit2 className="h-6 w-6" />
+          </Button>
+          <Button
+            size="icon"
+            variant="destructive"
+            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
+            onClick={() => onDelete(member.id, member.name)}
+            title="حذف العضو"
+          >
+            <Trash2 className="h-6 w-6" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="p-5">
+        <div className="flex flex-col mb-3">
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-lg text-slate-800 line-clamp-1">{member.name}</h4>
+            {member.hasAccount && (
+              <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                <UserCheck className="w-2.5 h-2.5" />
+                حساب مفعل
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2 items-center mt-1">
+            <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded w-fit">
+              ID: {member.memberId || member.memberIdSequential}
+            </span>
+            {member.username && (
+              <span className="text-[10px] font-medium text-slate-400">@{member.username}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2 text-sm text-slate-600">
+          {member.phone && (
+            <div className="flex items-center gap-2">
+              <Phone className="w-3.5 h-3.5 text-slate-400" />
+              {member.phone}
+            </div>
+          )}
+          {member.dateOfBirth && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              {new Date(member.dateOfBirth).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' })}
+            </div>
+          )}
+          {member.address && (
+            <div className="flex items-center gap-2 truncate">
+              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+              {member.address}
+            </div>
+          )}
+          {member.fatherOfConfession && (
+            <div className="flex items-center gap-2">
+              <Users className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs">أب الاعتراف: {member.fatherOfConfession}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -237,11 +343,11 @@ export default function Dashboard() {
         <div className="flex-1 p-4 space-y-2">
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-2 ${activeTab === 'stats' ? 'text-blue-600 bg-blue-50' : ''}`}
-            onClick={() => setActiveTab("members")} // Or actual stats tab if exists
+            className={`w-full justify-start gap-2 ${activeTab === 'search' ? 'text-blue-600 bg-blue-50' : ''}`}
+            onClick={() => setActiveTab("search")}
           >
-            <BarChart className="w-5 h-5 ml-2" />
-            الإحصائيات
+            <Search className="w-5 h-5 ml-2" />
+            البحث عن عضو
           </Button>
           <Button
             variant="ghost"
@@ -249,7 +355,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab("members")}
           >
             <Users className="w-5 h-5 ml-2" />
-            الأعضاء
+            الأعضاء المسجلين
           </Button>
           <Button
             variant="ghost"
@@ -257,7 +363,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab("attendance")}
           >
             <Calendar className="w-5 h-5 ml-2" />
-            الحضور
+            سجل الحضور
           </Button>
         </div>
         <div className="p-4 border-t">
@@ -284,133 +390,37 @@ export default function Dashboard() {
         <main className="p-8 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-6">
-              <TabsTrigger value="members">الأعضاء</TabsTrigger>
+              <TabsTrigger value="search">البحث</TabsTrigger>
+              <TabsTrigger value="members">كل الأعضاء</TabsTrigger>
               <TabsTrigger value="attendance">سجل الحضور</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="members" className="space-y-6">
+            <TabsContent value="search" className="space-y-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-2.5 w-5 h-5 text-gray-400" />
                   <Input
-                    placeholder="بحث (اسم، موبايل، شهر ميلاد، أو ID)..."
+                    placeholder="بحث باسم العضو، رقم الهاتف، أو ID..."
                     className="pr-10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-700" onClick={openAddMember}>
-                  <UserPlus className="w-5 h-5 ml-2" />
-                  إضافة عضو جديد
-                </Button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredMembers.length > 0 ? (
                   filteredMembers.map((member: any) => (
-                    <Card key={member.id} className="p-0 overflow-hidden group hover:shadow-xl transition-all duration-300 border-none bg-white shadow-sm">
-                      <div className="relative aspect-square bg-white border-b border-slate-50 italic">
-                        {member.imageUrl ? (
-                          <img
-                            src={member.imageUrl}
-                            alt={member.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&size=256`;
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-200 bg-slate-50">
-                            <User className="w-16 h-16" />
-                            <span className="text-[10px] font-bold uppercase mt-2 tracking-widest text-slate-300">No Image</span>
-                          </div>
-                        )}
-                        <div className="absolute top-2 left-2 bg-white/90 p-1 rounded-lg shadow-md z-10 scale-90 origin-top-left">
-                          <QRCodeGenerator value={member.memberId || member.id} size={40} includeMargin={false} />
-                        </div>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            onClick={() => setViewingQr(member)}
-                            title="عرض كود QR"
-                          >
-                            <QrCode className="h-6 w-6" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            onClick={() => openEditMember(member)}
-                            title="تعديل البيانات"
-                          >
-                            <Edit2 className="h-6 w-6" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="h-12 w-12 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            onClick={() => handleDeleteMember(member.id, member.name)}
-                            title="حذف العضو"
-                          >
-                            <Trash2 className="h-6 w-6" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="p-5">
-                        <div className="flex flex-col mb-3">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-lg text-slate-800 line-clamp-1">{member.name}</h4>
-                            {member.hasAccount && (
-                              <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                                <UserCheck className="w-2.5 h-2.5" />
-                                حساب مفعل
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex gap-2 items-center mt-1">
-                            <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded w-fit">
-                              ID: {member.memberId || member.memberIdSequential}
-                            </span>
-                            {member.username && (
-                              <span className="text-[10px] font-medium text-slate-400">@{member.username}</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 text-sm text-slate-600">
-                          {member.phone && (
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-3.5 h-3.5 text-slate-400" />
-                              {member.phone}
-                            </div>
-                          )}
-                          {member.dateOfBirth && (
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                              {new Date(member.dateOfBirth).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' })}
-                            </div>
-                          )}
-                          {member.address && (
-                            <div className="flex items-center gap-2 truncate">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                              {member.address}
-                            </div>
-                          )}
-                          {member.fatherOfConfession && (
-                            <div className="flex items-center gap-2">
-                              <Users className="w-3.5 h-3.5 text-slate-400" />
-                              <span className="text-xs">أب الاعتراف: {member.fatherOfConfession}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
+                    <MemberCard
+                      key={member.id}
+                      member={member}
+                      onEdit={openEditMember}
+                      onDelete={handleDeleteMember}
+                      onViewQr={setViewingQr}
+                    />
                   ))
                 ) : (
-                  <div className="col-span-full py-12 text-center bg-white rounded-lg shadow-sm">
+                  <div className="col-span-full py-12 text-center bg-white rounded-lg shadow-sm border border-slate-100">
                     <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                     <p className="text-slate-500 font-medium">لا يوجد أعضاء مطابقين للبحث</p>
                   </div>
@@ -418,46 +428,87 @@ export default function Dashboard() {
               </div>
             </TabsContent>
 
+            <TabsContent value="members" className="space-y-6">
+              <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">الأعضاء المسجلين</h2>
+                  <p className="text-sm text-slate-500">إجمالي عدد الأعضاء: {allMembers.length}</p>
+                </div>
+                <Button className="bg-blue-600 hover:bg-blue-700 shadow-md transform hover:scale-105 transition-all h-11" onClick={openAddMember}>
+                  <UserPlus className="w-5 h-5 ml-2" />
+                  إضافة عضو جديد
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {allMembers.length > 0 ? (
+                  allMembers.map((member: any) => (
+                    <MemberCard
+                      key={member.id}
+                      member={member}
+                      onEdit={openEditMember}
+                      onDelete={handleDeleteMember}
+                      onViewQr={setViewingQr}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full py-20 text-center bg-white rounded-xl shadow-sm border-2 border-dashed border-slate-200">
+                    <Users className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                    <p className="text-xl font-semibold text-slate-400 mb-2">لا يوجد أعضاء مسجلين بعد</p>
+                    <Button variant="outline" onClick={openAddMember}>ابدأ بإضافة أول عضو</Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="attendance">
-              <Card className="p-0 border-none shadow-md overflow-hidden bg-white">
-                <table className="w-full text-right">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="px-6 py-4 text-sm font-bold text-slate-700">التاريخ</th>
-                      <th className="px-6 py-4 text-sm font-bold text-slate-700">الاسم</th>
-                      <th className="px-6 py-4 text-sm font-bold text-slate-700">الرقم التعريفي (ID)</th>
-                      <th className="px-6 py-4 text-sm font-bold text-slate-700">الوقت</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {allAttendance.length > 0 ? (
-                      allAttendance.map((record: any) => {
-                        const date = record.createdAt ? new Date(record.createdAt) : new Date();
-                        return (
-                          <tr key={record.id} className="hover:bg-blue-50/30 transition-colors">
-                            <td className="px-6 py-4 text-sm font-medium">
-                              {date.toLocaleDateString('ar-EG')}
-                            </td>
-                            <td className="px-6 py-4 text-sm font-bold text-slate-900">{record.memberName}</td>
-                            <td className="px-6 py-4 text-sm text-blue-600 font-mono font-bold">
-                              {record.memberIdStr}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-slate-500">
-                              {date.toLocaleTimeString('ar-EG')}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
+              <Card className="p-0 border-none shadow-md overflow-hidden bg-white rounded-xl">
+                <div className="p-6 border-b bg-slate-50 flex justify-between items-center">
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-blue-500" />
+                    سجلات الحضور الأخيرة
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-right">
+                    <thead className="bg-slate-50 border-b">
                       <tr>
-                        <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
-                          <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                          لا توجد سجلات حضور حالياً
-                        </td>
+                        <th className="px-6 py-4 text-sm font-bold text-slate-700">التاريخ</th>
+                        <th className="px-6 py-4 text-sm font-bold text-slate-700">الاسم</th>
+                        <th className="px-6 py-4 text-sm font-bold text-slate-700">الرقم التعريفي (ID)</th>
+                        <th className="px-6 py-4 text-sm font-bold text-slate-700">الوقت</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {allAttendance.length > 0 ? (
+                        allAttendance.map((record: any) => {
+                          const date = record.createdAt ? new Date(record.createdAt) : new Date();
+                          return (
+                            <tr key={record.id} className="hover:bg-blue-50/30 transition-colors">
+                              <td className="px-6 py-4 text-sm font-medium">
+                                {date.toLocaleDateString('ar-EG')}
+                              </td>
+                              <td className="px-6 py-4 text-sm font-bold text-slate-900">{record.memberName}</td>
+                              <td className="px-6 py-4 text-sm text-blue-600 font-mono font-bold">
+                                {record.memberIdStr}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-500">
+                                {date.toLocaleTimeString('ar-EG')}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-20 text-center text-slate-500">
+                            <Calendar className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                            <p className="text-lg font-medium text-slate-400">لا توجد سجلات حضور حالياً</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </Card>
             </TabsContent>
           </Tabs>
@@ -589,24 +640,6 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
-    </div >
+    </div>
   );
 }
-
-const TrendingUp = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-    <polyline points="16 7 22 7 22 13" />
-  </svg>
-);
