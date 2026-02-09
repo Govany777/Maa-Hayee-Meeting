@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, X, LogOut, Home, Edit2, TrendingUp, Calendar, Camera, UserCheck } from "lucide-react";
+import { Upload, X, LogOut, Home, Edit2, TrendingUp, Calendar, Camera, UserCheck, QrCode } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";

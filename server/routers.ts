@@ -398,10 +398,17 @@ export const appRouter = router({
         const attendance = await getAttendanceByMemberId(member.id);
         const totalAttendance = attendance.length;
 
+        // Simple percentage calculation: (total member attendance / total system meetings) * 100
+        // If we don't have total system meetings, let's assume 10 for now or calculate from all attendance
+        const allAttendance = await getAllAttendanceRecords();
+        const uniqueDates = new Set(allAttendance.map(a => new Date(a.attendanceDate).toDateString())).size;
+        const totalMeetings = Math.max(uniqueDates, 1);
+        const attendancePercentage = Math.round((totalAttendance / totalMeetings) * 100);
+
         return {
           ...member,
           totalAttendance,
-          attendancePercentage: 0,
+          attendancePercentage,
         };
       }),
 
