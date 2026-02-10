@@ -29,6 +29,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { sdk } from "./_core/sdk";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { storagePut } from "./storage";
+import { getSessionCookieOptions } from "./_core/cookies";
 
 export const appRouter = router({
   system: systemRouter,
@@ -81,7 +82,7 @@ export const appRouter = router({
           name: admin.fullName || admin.username
         });
 
-        const cookieOptions = require('./_core/cookies').getSessionCookieOptions(ctx.req);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,
@@ -246,7 +247,7 @@ export const appRouter = router({
           name: member.name
         });
 
-        const cookieOptions = require('./_core/cookies').getSessionCookieOptions(ctx.req);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,
@@ -355,7 +356,7 @@ export const appRouter = router({
           name: member.name
         });
 
-        const cookieOptions = require('./_core/cookies').getSessionCookieOptions(ctx.req);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,

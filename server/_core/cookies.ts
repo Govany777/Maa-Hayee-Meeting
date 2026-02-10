@@ -26,14 +26,12 @@ export function getSessionCookieOptions(
 ): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
   const isSecure = isSecureRequest(req);
 
-  // For production (Railway), use 'none' with secure
-  // For local development, use 'lax'
-  const sameSite = isSecure ? "none" : "lax";
-
+  // Always use 'lax' for better compatibility with Railway/production
+  // This prevents session logout issues while maintaining security
   return {
     httpOnly: true,
     path: "/",
-    sameSite,
+    sameSite: "lax",
     secure: isSecure,
   };
 }
