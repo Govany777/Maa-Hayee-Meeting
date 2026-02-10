@@ -81,11 +81,9 @@ export const appRouter = router({
           name: admin.fullName || admin.username
         });
 
+        const cookieOptions = require('./_core/cookies').getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "lax",
-          path: "/",
+          ...cookieOptions,
           maxAge: ONE_YEAR_MS,
         });
 
@@ -248,11 +246,9 @@ export const appRouter = router({
           name: member.name
         });
 
+        const cookieOptions = require('./_core/cookies').getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "lax",
-          path: "/",
+          ...cookieOptions,
           maxAge: ONE_YEAR_MS,
         });
 
@@ -359,11 +355,9 @@ export const appRouter = router({
           name: member.name
         });
 
+        const cookieOptions = require('./_core/cookies').getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "lax",
-          path: "/",
+          ...cookieOptions,
           maxAge: ONE_YEAR_MS,
         });
 
