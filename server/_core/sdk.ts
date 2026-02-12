@@ -6,6 +6,7 @@ import type { Request } from "express";
 import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../shared/types";
 import * as db from "../db";
+import { getAdminById, getMemberAccountById, getMemberById } from "../db";
 import { ENV } from "./env";
 import type {
   ExchangeTokenRequest,
@@ -276,21 +277,49 @@ class SDKServer {
     const signedInAt = new Date();
     let user = await db.getUserByOpenId(sessionUserId);
 
-    // If user not in DB, sync from OAuth server automatically
+    // If user not in DB: try local admin/member fallback first (our own JWT from admin/member login)
     if (!user) {
-      try {
-        const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
+      const admin = await getAdminById(sessionUserId);
+      if (admin) {
         await db.upsertUser({
-          openId: userInfo.openId,
-          name: userInfo.name || null,
-          email: userInfo.email ?? null,
-          loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+          openId: admin.id,
+          name: admin.fullName || admin.username,
+          role: "admin",
           lastSignedIn: signedInAt,
         });
-        user = await db.getUserByOpenId(userInfo.openId);
-      } catch (error) {
-        console.error("[Auth] Failed to sync user from OAuth:", error);
-        throw ForbiddenError("Failed to sync user info");
+        user = await db.getUserByOpenId(admin.id);
+      }
+      if (!user) {
+        const account = await getMemberAccountById(sessionUserId);
+        if (account) {
+          const member = await getMemberById(account.memberId);
+          if (member) {
+            await db.upsertUser({
+              openId: account.id,
+              name: member.name || null,
+              role: "user",
+              lastSignedIn: signedInAt,
+            });
+            user = await db.getUserByOpenId(account.id);
+          }
+        }
+      }
+      // Last resort: sync from OAuth server (for OAuth-based logins only)
+      if (!user && ENV.oAuthServerUrl) {
+        try {
+          const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
+          await db.upsertUser({
+            openId: userInfo.openId,
+            name: userInfo.name || null,
+            email: userInfo.email ?? null,
+            loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+            lastSignedIn: signedInAt,
+          });
+          user = await db.getUserByOpenId(userInfo.openId);
+        } catch (error) {
+          console.error("[Auth] Failed to sync user from OAuth:", error);
+          throw ForbiddenError("Failed to sync user info");
+        }
       }
     }
 

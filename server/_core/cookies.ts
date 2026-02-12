@@ -26,12 +26,13 @@ export function getSessionCookieOptions(
 ): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
   const isSecure = isSecureRequest(req);
 
-  // Always use 'lax' for better compatibility with Railway/production
-  // This prevents session logout issues while maintaining security
+  // Use 'lax' for same-origin requests (Railway, Render, etc.)
+  // In production behind HTTPS proxy, secure: true ensures cookie is sent only over HTTPS
   return {
     httpOnly: true,
     path: "/",
     sameSite: "lax",
     secure: isSecure,
+    // Don't set domain - let browser use current host (required for cookies to work on *.railway.app)
   };
 }

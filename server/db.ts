@@ -93,6 +93,18 @@ export async function getAdminByUsername(username: string): Promise<Admin | null
   } as Admin;
 }
 
+export async function getAdminById(id: string): Promise<Admin | null> {
+  const doc = await db.collection(ADMINS_COLLECTION).doc(id).get();
+  if (!doc.exists) return null;
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: toDate(data?.createdAt),
+    updatedAt: toDate(data?.updatedAt)
+  } as Admin;
+}
+
 export async function createAdmin(data: InsertAdmin): Promise<Admin | null> {
   const newUserRef = db.collection(ADMINS_COLLECTION).doc();
   const now = new Date();
@@ -378,6 +390,18 @@ export async function getMemberAccountByMemberId(memberId: string): Promise<Memb
     ...data,
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt)
+  } as MemberAccount;
+}
+
+export async function getMemberAccountById(id: string): Promise<MemberAccount | undefined> {
+  const doc = await db.collection(MEMBER_ACCOUNTS_COLLECTION).doc(id).get();
+  if (!doc.exists) return undefined;
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: toDate(data?.createdAt),
+    updatedAt: toDate(data?.updatedAt)
   } as MemberAccount;
 }
 

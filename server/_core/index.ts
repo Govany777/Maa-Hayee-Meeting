@@ -33,8 +33,12 @@ export const app = express();
 export async function startServer() {
   const server = createServer(app);
 
-  // Enable trust proxy for secure cookies behind proxies (Railway, Vercel)
+  // Enable trust proxy for secure cookies behind proxies (Railway, Vercel, Render)
   app.set("trust proxy", 1);
+  // Validate JWT_SECRET in production - required for session cookies
+  if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET?.trim()) {
+    console.error("[FATAL] JWT_SECRET is required in production. Set it in your hosting environment variables.");
+  }
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
