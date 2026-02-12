@@ -27,6 +27,7 @@ import QRCodeGenerator from "@/components/QRCodeGenerator";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { clearAuthToken } from "@/lib/authToken";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -226,6 +227,7 @@ export default function Dashboard() {
   }, [allMembers, searchQuery]);
 
   const handleLogout = () => {
+    clearAuthToken();
     sessionStorage.removeItem("adminSession");
     toast.success("تم تسجيل الخروج");
     setLocation("/admin-login");

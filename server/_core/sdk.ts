@@ -259,15 +259,19 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
+    // Try cookie first, then Authorization Bearer header (fallback for Railway/production where cookies may fail)
     const cookies = this.parseCookies(req.headers.cookie);
-    const sessionCookie = cookies.get(COOKIE_NAME);
-
-    if (!sessionCookie) {
-      console.log(`[SDK] No session cookie found with name: ${COOKIE_NAME}`);
+    let tokenValue = cookies.get(COOKIE_NAME);
+    if (!tokenValue) {
+      const authHeader = req.headers.authorization;
+      if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+        tokenValue = authHeader.slice(7);
+      }
     }
-
-    const session = await this.verifySession(sessionCookie);
+    if (!tokenValue) {
+      console.log(`[SDK] No session cookie or Authorization header found`);
+    }
+    const session = await this.verifySession(tokenValue);
 
     if (!session) {
       throw ForbiddenError(UNAUTHED_ERR_MSG);
@@ -307,7 +311,7 @@ class SDKServer {
       // Last resort: sync from OAuth server (for OAuth-based logins only)
       if (!user && ENV.oAuthServerUrl) {
         try {
-          const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
+          const userInfo = await this.getUserInfoWithJwt(tokenValue ?? "");
           await db.upsertUser({
             openId: userInfo.openId,
             name: userInfo.name || null,

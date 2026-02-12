@@ -6,6 +6,7 @@ import { Lock, User, AlertCircle, Home } from "lucide-react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { setAuthToken } from "@/lib/authToken";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -30,7 +31,10 @@ export default function AdminLogin() {
         password,
       });
 
-      // حفظ بيانات الجلسة في sessionStorage
+      // حفظ token للـ Authorization header (يعمل على Railway عند فشل cookies)
+      if (result.sessionToken) {
+        setAuthToken(result.sessionToken);
+      }
       sessionStorage.setItem("adminSession", JSON.stringify({
         adminId: result.admin.id,
         username: result.admin.username,

@@ -1,4 +1,5 @@
 export const COOKIE_NAME = "maa_hayee_session_v1";
+export const AUTH_TOKEN_STORAGE_KEY = "maa_hayee_auth_token";
 export const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
 export const AXIOS_TIMEOUT_MS = 30_000;
 export const UNAUTHED_ERR_MSG = 'Please login (10001)';

@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
+import { clearAuthToken } from "@/lib/authToken";
 
 interface MemberSession {
   memberId: string;
@@ -180,6 +181,7 @@ export default function MemberDashboard() {
   };
 
   const handleLogout = () => {
+    clearAuthToken();
     sessionStorage.removeItem("memberSession");
     toast.success("تم تسجيل الخروج بنجاح");
     setLocation("/members-registration");

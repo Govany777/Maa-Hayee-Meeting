@@ -1,4 +1,5 @@
 import { getLoginUrl } from "@/const";
+import { clearAuthToken } from "@/lib/authToken";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -20,6 +21,7 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
+      clearAuthToken();
       utils.auth.me.setData(undefined, null);
     },
   });

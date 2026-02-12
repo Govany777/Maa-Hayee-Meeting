@@ -6,6 +6,7 @@ import { Lock, User, Phone, AlertCircle, Home, Upload, X, Calendar, MapPin, User
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { setAuthToken } from "@/lib/authToken";
 
 interface RegistrationFormData {
   username: string;
@@ -147,6 +148,9 @@ export default function MembersRegistration() {
       });
 
       toast.success("تم إنشاء الحساب بنجاح");
+      if (result.sessionToken) {
+        setAuthToken(result.sessionToken);
+      }
       // حفظ البيانات الكاملة في الجلسة
       sessionStorage.setItem("memberSession", JSON.stringify({
         ...result,
@@ -182,6 +186,9 @@ export default function MembersRegistration() {
         username: loginData.username,
         password: loginData.password,
       });
+      if (result.sessionToken) {
+        setAuthToken(result.sessionToken);
+      }
       sessionStorage.setItem("memberSession", JSON.stringify(result));
       toast.success("تم تسجيل الدخول بنجاح");
       setLocation("/member-dashboard");

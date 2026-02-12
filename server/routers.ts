@@ -88,7 +88,7 @@ export const appRouter = router({
           maxAge: ONE_YEAR_MS,
         });
 
-        return { success: true, admin };
+        return { success: true, admin, sessionToken };
       }),
 
     getAllMembers: protectedProcedure.query(async () => {
@@ -263,6 +263,7 @@ export const appRouter = router({
           address: member.address,
           fatherOfConfession: member.fatherOfConfession,
           imageUrl: member.imageUrl,
+          sessionToken,
         };
       }),
 
@@ -372,6 +373,7 @@ export const appRouter = router({
           address: member.address || null,
           fatherOfConfession: member.fatherOfConfession || null,
           imageUrl: member.imageUrl || null,
+          sessionToken,
         };
       }),
 

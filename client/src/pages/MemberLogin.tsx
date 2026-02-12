@@ -6,6 +6,7 @@ import { Lock, User, AlertCircle, Home } from "lucide-react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { setAuthToken } from "@/lib/authToken";
 
 export default function MemberLogin() {
   const [, setLocation] = useLocation();
@@ -28,6 +29,9 @@ export default function MemberLogin() {
     setIsLoading(true);
     try {
       const result = await loginMutation.mutateAsync({ username, password });
+      if (result.sessionToken) {
+        setAuthToken(result.sessionToken);
+      }
       sessionStorage.setItem("memberSession", JSON.stringify(result));
       toast.success("تم تسجيل الدخول بنجاح");
       setLocation("/member-dashboard");

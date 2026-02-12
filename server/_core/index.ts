@@ -8,6 +8,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { cspMiddleware } from "./csp";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +40,9 @@ export async function startServer() {
   if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET?.trim()) {
     console.error("[FATAL] JWT_SECRET is required in production. Set it in your hosting environment variables.");
   }
+
+  // Content Security Policy and security headers
+  app.use(cspMiddleware);
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
