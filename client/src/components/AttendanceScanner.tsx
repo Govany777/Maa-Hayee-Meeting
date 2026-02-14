@@ -18,8 +18,8 @@ export default function AttendanceScanner() {
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const getMemberQuery = trpc.members.getProfile.useQuery(
-    { memberId: parseInt(searchId) || 0 },
-    { enabled: searchId.length > 0 && !isNaN(parseInt(searchId)) }
+    { memberId: searchId.trim() },
+    { enabled: searchId.trim().length > 0 }
   );
 
   const recordAttendanceMutation = trpc.attendance.recordAttendance.useMutation();

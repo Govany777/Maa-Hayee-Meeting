@@ -45,8 +45,8 @@ export default function Attendance() {
       }
     ];
 
-    let stream = null;
-    let lastError = null;
+    let stream: MediaStream | null = null;
+    let lastError: unknown = null;
 
     for (const constraint of constraints) {
       try {
@@ -65,10 +65,11 @@ export default function Attendance() {
       setCameraActive(true);
       requestAnimationFrame(tick);
     } else {
+      const err = lastError as { name?: string; message?: string } | null;
       console.error("Camera access error:", lastError);
-      const errorMsg = lastError?.name === "NotReadableError" || lastError?.message?.includes("start video source")
+      const errorMsg = err?.name === "NotReadableError" || err?.message?.includes("start video source")
         ? "الكاميرا مشغولة الآن ببرنامج آخر (مثل Zoom أو Teams)"
-        : (lastError?.message || "تأكد من إعطاء صلاحية الكاميرا");
+        : (err?.message || "تأكد من إعطاء صلاحية الكاميرا");
       toast.error("لا يمكن الوصول إلى الكاميرا: " + errorMsg);
     }
   };

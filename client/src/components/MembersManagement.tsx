@@ -14,7 +14,7 @@ interface MembersManagementProps {
 
 export default function MembersManagement({ onMemberAdded }: MembersManagementProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     memberId: "",
     name: "",
@@ -74,7 +74,7 @@ export default function MembersManagement({ onMemberAdded }: MembersManagementPr
     setIsOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm("هل تريد حذف هذا العضو؟")) {
       try {
         await deleteMutation.mutateAsync({ id });

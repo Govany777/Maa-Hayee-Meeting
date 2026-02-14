@@ -1,4 +1,4 @@
-
+import type { Transaction, DocumentSnapshot, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { db, FieldValue, Timestamp } from "./firebase";
 import { User, InsertUser, Admin, InsertAdmin, Member, InsertMember, AttendanceRecord, InsertAttendanceRecord, MemberAccount, InsertMemberAccount, Role, AttendanceStatus } from "../shared/types";
 import { ENV } from './_core/env';
@@ -124,8 +124,8 @@ async function getNextMemberIdSequential(): Promise<number> {
   const counterRef = db.collection(COUNTERS_COLLECTION).doc("members");
 
   try {
-    return await db.runTransaction(async (t) => {
-      const doc = await t.get(counterRef);
+    return await db.runTransaction(async (t: Transaction) => {
+      const doc = (await t.get(counterRef)) as DocumentSnapshot;
       let nextId = 1;
       if (doc.exists) {
         nextId = (doc.data()?.lastSequentialId || 0) + 1;
@@ -317,7 +317,7 @@ export async function getTodayAttendance(): Promise<AttendanceRecord[]> {
     .where("attendanceDate", "<", tomorrow)
     .get();
 
-  return snapshot.docs.map(doc => {
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => {
     const data = doc.data();
     return {
       id: doc.id,
