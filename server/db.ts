@@ -182,7 +182,7 @@ export async function getMemberById(id: string): Promise<Member | null> {
 }
 
 export async function getMemberByMemberId(memberId: string): Promise<Member | null> {
-  // 1. Try to find the member by their memberId field (the one shown in QR)
+  // 1. Strict search by memberId field (the visible 1, 2, 3...)
   const snapshot = await db.collection(MEMBERS_COLLECTION)
     .where("memberId", "==", memberId)
     .where("status", "==", "active")
@@ -199,22 +199,6 @@ export async function getMemberByMemberId(memberId: string): Promise<Member | nu
       updatedAt: toDate(data.updatedAt),
       dateOfBirth: data.dateOfBirth ? toDate(data.dateOfBirth) : null,
     } as Member;
-  }
-
-  // 2. ONLY as a fallback, check if the ID provided is the Firestore Doc ID itself
-  // and has a different memberId. If so, return it.
-  const doc = await db.collection(MEMBERS_COLLECTION).doc(memberId).get();
-  if (doc.exists) {
-    const data = doc.data();
-    if (data?.status === "active") {
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: toDate(data?.createdAt),
-        updatedAt: toDate(data?.updatedAt),
-        dateOfBirth: data?.dateOfBirth ? toDate(data.dateOfBirth) : null,
-      } as Member;
-    }
   }
 
   return null;
