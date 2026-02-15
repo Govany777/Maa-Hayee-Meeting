@@ -11,16 +11,28 @@ const resolvedPath = resolve(process.cwd(), serviceAccountPath);
 function initializeFirebaseAdmin() {
     if (getApps().length > 0) return getApp();
 
-    const envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    let envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
     if (envJson) {
         try {
-            const serviceAccount = JSON.parse(envJson.trim());
+            // Clean the JSON string from any extra wrapping quotes that some platforms add
+            envJson = envJson.trim();
+            if (envJson.startsWith("'") && envJson.endsWith("'")) {
+                envJson = envJson.slice(1, -1);
+            } else if (envJson.startsWith('"') && envJson.endsWith('"')) {
+                // Only remove double quotes if it's not a valid JSON yet
+                try { JSON.parse(envJson); } catch {
+                    envJson = envJson.slice(1, -1).replace(/\\"/g, '"');
+                }
+            }
+
+            const serviceAccount = JSON.parse(envJson);
             if (serviceAccount.private_key) {
+                // Ensure newlines are correctly formatted in the private key
                 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
             }
 
             const bucketName = process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`;
-            console.log("[Firebase] Initializing with Project ID:", serviceAccount.project_id, "Bucket:", bucketName);
+            console.log("[Firebase] Attempting initialization with Project ID:", serviceAccount.project_id);
 
             return initializeApp({
                 credential: cert(serviceAccount),
@@ -28,8 +40,9 @@ function initializeFirebaseAdmin() {
                 storageBucket: bucketName
             });
         } catch (e: any) {
-            console.error("[Firebase] Critical Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Make sure you pasted the ENTIRE JSON content.");
-            console.error("[Firebase] Error details:", e.message);
+            console.error("[Firebase] CRITICAL ERROR parsing FIREBASE_SERVICE_ACCOUNT_JSON:");
+            console.error(e.message);
+            // Don't crash the whole process, but mark as failed
         }
     }
 
@@ -37,7 +50,7 @@ function initializeFirebaseAdmin() {
         try {
             const serviceAccount = JSON.parse(readFileSync(resolvedPath, "utf-8"));
             const bucketName = process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`;
-            console.log("[Firebase] Initializing with local file, Project ID:", serviceAccount.project_id, "Bucket:", bucketName);
+            console.log("[Firebase] Initializing with local file:", resolvedPath);
             return initializeApp({
                 credential: cert(serviceAccount),
                 projectId: serviceAccount.project_id,
@@ -48,14 +61,8 @@ function initializeFirebaseAdmin() {
         }
     }
 
-    // Last resort fallback
-    try {
-        console.warn("[Firebase] Falling back to default credentials...");
-        return initializeApp();
-    } catch (e: any) {
-        console.error("[Firebase] All initialization attempts failed:", e.message);
-        return null;
-    }
+    console.error("[Firebase] FATAL: No valid service account found. Firestore will NOT work.");
+    return null;
 }
 
 // Global initialization
