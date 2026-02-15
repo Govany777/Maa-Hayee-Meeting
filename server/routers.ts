@@ -159,18 +159,13 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        // Find by visible memberId field first
+        // Find by memberId (the one that shows in QR)
         let member = await getMemberByMemberId(input.memberId);
-
-        // If not found, try by internal ID
-        if (!member) {
-          member = await getMemberById(input.memberId);
-        }
 
         if (!member) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "العضو غير موجود",
+            message: "الرقم التعريفي غير صحيح أو العضو غير موجود",
           });
         }
 
