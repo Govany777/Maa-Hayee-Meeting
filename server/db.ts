@@ -125,18 +125,22 @@ async function getNextMemberIdSequential(): Promise<number> {
 
   try {
     return await db.runTransaction(async (t: Transaction) => {
-      const doc = (await t.get(counterRef)) as DocumentSnapshot;
+      const doc = await t.get(counterRef);
       let nextId = 1;
+
       if (doc.exists) {
-        nextId = (doc.data()?.lastSequentialId || 0) + 1;
+        const data = doc.data();
+        nextId = (data?.lastSequentialId || 0) + 1;
       }
+
       t.set(counterRef, { lastSequentialId: nextId }, { merge: true });
+      console.log("[DB] Generated next sequential ID:", nextId);
       return nextId;
     });
   } catch (e) {
-    console.error("Failed to generate sequential ID", e);
-    // Fallback? Or just fail.
-    throw e;
+    console.error("[DB] Failed to generate sequential ID", e);
+    // Fallback based on timestamp if transaction fails, to ensure uniqueness
+    return Date.now();
   }
 }
 
