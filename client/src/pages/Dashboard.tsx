@@ -22,6 +22,7 @@ import {
   Edit2,
   Trash2,
   X,
+  Lock,
 } from "lucide-react";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
 import { useLocation } from "wouter";
@@ -168,6 +169,31 @@ export default function Dashboard() {
   const [memberImage, setMemberImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Password Protection for Search/Sensitive actions
+  const [isActionAuthorized, setIsActionAuthorized] = useState(false);
+  const [passInput, setPassInput] = useState("");
+  const [isPassDialogOpen, setIsPassDialogOpen] = useState(false);
+  const PROTECTED_PASSWORD = "1010";
+
+  const handlePasswordSubmit = () => {
+    if (passInput === PROTECTED_PASSWORD) {
+      setIsActionAuthorized(true);
+      setIsPassDialogOpen(false);
+      toast.success("تم تأكيد الهوية");
+    } else {
+      toast.error("كلمة المرور غير صحيحة");
+      setPassInput("");
+    }
+  };
+
+  const handleTabChange = (val: string) => {
+    if (val === "search" && !isActionAuthorized) {
+      setIsPassDialogOpen(true);
+      return;
+    }
+    setActiveTab(val);
+  };
 
   const utils = trpc.useUtils();
   const membersQuery = trpc.admin.getAllMembers.useQuery(undefined, {
@@ -366,7 +392,7 @@ export default function Dashboard() {
           <Button
             variant="ghost"
             className={`w-full justify-start gap-2 ${activeTab === 'search' ? 'text-blue-600 bg-blue-50' : ''}`}
-            onClick={() => setActiveTab("search")}
+            onClick={() => handleTabChange("search")}
           >
             <Search className="w-5 h-5 ml-2" />
             البحث عن عضو
@@ -374,7 +400,7 @@ export default function Dashboard() {
           <Button
             variant="ghost"
             className={`w-full justify-start gap-2 ${activeTab === 'members' ? 'text-blue-600 bg-blue-50' : ''}`}
-            onClick={() => setActiveTab("members")}
+            onClick={() => handleTabChange("members")}
           >
             <Users className="w-5 h-5 ml-2" />
             الأعضاء المسجلين
@@ -382,7 +408,7 @@ export default function Dashboard() {
           <Button
             variant="ghost"
             className={`w-full justify-start gap-2 ${activeTab === 'attendance' ? 'text-blue-600 bg-blue-50' : ''}`}
-            onClick={() => setActiveTab("attendance")}
+            onClick={() => handleTabChange("attendance")}
           >
             <Calendar className="w-5 h-5 ml-2" />
             سجل الحضور
@@ -410,7 +436,7 @@ export default function Dashboard() {
         </header>
 
         <main className="p-8 overflow-y-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="search">البحث</TabsTrigger>
               <TabsTrigger value="members">كل الأعضاء</TabsTrigger>
@@ -665,6 +691,34 @@ export default function Dashboard() {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Password Protection Dialog */}
+      <Dialog open={isPassDialogOpen} onOpenChange={setIsPassDialogOpen}>
+        <DialogContent className="max-w-sm" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <div className="mx-auto bg-blue-100 p-3 rounded-full w-fit mb-4">
+              <Lock className="w-6 h-6 text-blue-600" />
+            </div>
+            <DialogTitle className="text-center">أدخل كلمة المرور للوصول للبحث</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Input
+              type="password"
+              placeholder="****"
+              value={passInput}
+              onChange={(e) => setPassInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handlePasswordSubmit()}
+              className="text-center text-2xl tracking-widest font-bold"
+              autoFocus
+            />
+            <Button
+              onClick={handlePasswordSubmit}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6"
+            >
+              تأكيد
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
