@@ -125,7 +125,7 @@ async function getNextMemberIdSequential(): Promise<number> {
 
   try {
     return await db.runTransaction(async (t: Transaction) => {
-      const doc = await t.get(counterRef);
+      const doc = (await t.get(counterRef)) as any;
       let nextId = 1;
 
       if (doc.exists) {
@@ -182,12 +182,31 @@ export async function getMemberById(id: string): Promise<Member | null> {
 }
 
 export async function getMemberByMemberId(memberId: string): Promise<Member | null> {
-  const snapshot = await db.collection(MEMBERS_COLLECTION).where("memberId", "==", memberId).limit(1).get();
-  if (snapshot.empty) {
-    // Also check if it matches the doc ID as fallback
-    const doc = await db.collection(MEMBERS_COLLECTION).doc(memberId).get();
-    if (doc.exists) {
-      const data = doc.data();
+  // 1. Try to find the member by their memberId field (the one shown in QR)
+  const snapshot = await db.collection(MEMBERS_COLLECTION)
+    .where("memberId", "==", memberId)
+    .where("status", "==", "active")
+    .limit(1)
+    .get();
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: toDate(data.createdAt),
+      updatedAt: toDate(data.updatedAt),
+      dateOfBirth: data.dateOfBirth ? toDate(data.dateOfBirth) : null,
+    } as Member;
+  }
+
+  // 2. ONLY as a fallback, check if the ID provided is the Firestore Doc ID itself
+  // and has a different memberId. If so, return it.
+  const doc = await db.collection(MEMBERS_COLLECTION).doc(memberId).get();
+  if (doc.exists) {
+    const data = doc.data();
+    if (data?.status === "active") {
       return {
         id: doc.id,
         ...data,
@@ -196,17 +215,9 @@ export async function getMemberByMemberId(memberId: string): Promise<Member | nu
         dateOfBirth: data?.dateOfBirth ? toDate(data.dateOfBirth) : null,
       } as Member;
     }
-    return null;
   }
-  const doc = snapshot.docs[0];
-  const data = doc.data();
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: toDate(data.createdAt),
-    updatedAt: toDate(data.updatedAt),
-    dateOfBirth: data.dateOfBirth ? toDate(data.dateOfBirth) : null,
-  } as Member;
+
+  return null;
 }
 
 export async function getMemberByPhone(phone: string): Promise<Member | null> {
