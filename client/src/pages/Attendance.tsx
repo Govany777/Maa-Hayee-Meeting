@@ -46,65 +46,72 @@ export default function Attendance() {
   }, [attendanceQuery.data]);
 
   const startCamera = async () => {
-    const constraints = [
-      {
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+    // 1. تفعيل الحالة أولاً لضمان وجود عنصر الفيديو في الـ DOM
+    setCameraActive(true);
+
+    // 2. انتظار بسيط جداً لضمان أن الـ React انتهى من رسم الفيديو
+    setTimeout(async () => {
+      const constraints = [
+        {
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        },
+        { video: { facingMode: "environment" } },
+        { video: true }
+      ];
+
+      let stream: MediaStream | null = null;
+      let lastError: any = null;
+
+      for (const constraint of constraints) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraint);
+          if (stream) break;
+        } catch (e) {
+          lastError = e;
+          continue;
         }
-      },
-      {
-        video: { facingMode: "environment" }
-      },
-      {
-        video: true
       }
-    ];
 
-    let stream: MediaStream | null = null;
-    let lastError: unknown = null;
+      if (stream && videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute("playsinline", "true");
+        videoRef.current.play();
+        requestAnimationFrame(tick);
+      } else {
+        setCameraActive(false); // إرجاع الحالة للأصل لو فشل التشغيل
+        console.error("Camera access error:", lastError);
 
-    for (const constraint of constraints) {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia(constraint);
-        if (stream) break;
-      } catch (e) {
-        lastError = e;
-        continue;
+        let errorMsg = "تأكد من إعطاء صلاحية الكاميرا للمتصفح";
+        if (lastError?.name === "NotAllowedError") {
+          errorMsg = "تم رفض إذن الكاميرا. يرجى تفعيله من إعدادات المتصفح بجانب رابط الموقع.";
+        } else if (lastError?.name === "NotReadableError") {
+          errorMsg = "الكاميرا مستخدمة من قبل تطبيق آخر حالياً.";
+        }
+
+        toast.error(errorMsg);
       }
-    }
-
-    if (stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.setAttribute("playsinline", "true");
-      videoRef.current.play();
-      setCameraActive(true);
-      requestAnimationFrame(tick);
-    } else {
-      const err = lastError as { name?: string; message?: string } | null;
-      console.error("Camera access error:", lastError);
-      const errorMsg = err?.name === "NotReadableError" || err?.message?.includes("start video source")
-        ? "الكاميرا مشغولة الآن ببرنامج آخر (مثل Zoom أو Teams)"
-        : (err?.message || "تأكد من إعطاء صلاحية الكاميرا");
-      toast.error("لا يمكن الوصول إلى الكاميرا: " + errorMsg);
-    }
+    }, 100); // تأخير 100 ملي ثانية
   };
 
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
       tracks.forEach(track => track.stop());
-      setCameraActive(false);
+      videoRef.current.srcObject = null;
     }
+    setCameraActive(false);
   };
 
   const tick = () => {
-    if (!cameraActive || !videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current) return;
 
     if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
       const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext("2d", { willReadFrequently: true });
       if (context) {
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
@@ -114,33 +121,40 @@ export default function Attendance() {
           inversionAttempts: "dontInvert",
         });
 
-        if (code) {
-          let memberIdFound = "";
-          try {
-            // Try as JSON first
-            const data = JSON.parse(code.data);
-            memberIdFound = data.memberId || code.data;
-          } catch (e) {
-            // Not JSON, assume it's the ID directly
-            memberIdFound = code.data;
-          }
-
-          if (memberIdFound) {
-            handleAttendance(memberIdFound);
-            stopCamera(); // Stop camera when found
-            return;
-          }
+        if (code && code.data) {
+          console.log("Found QR code:", code.data);
+          // استخراج الـ ID من الكود ومسح أي مسافات
+          const memberIdFound = code.data.trim();
+          handleAttendance(memberIdFound);
+          stopCamera(); // إيقاف الكاميرا فور النجاح
+          return;
         }
       }
     }
-    requestAnimationFrame(tick);
+
+    // استمرار الفحص طالما الكاميرا مفعلة
+    if (videoRef.current.srcObject) {
+      requestAnimationFrame(tick);
+    }
   };
 
   const handleAttendance = async (memberId: string) => {
+    if (!memberId) return;
+
+    toast.info("جاري البحث عن العضو...");
     try {
-      const member = await utils.members.getProfile.fetch({ memberId });
+      // البحث عن العضو باستخدام الـ ID
+      const member = await utils.admin.searchMembers.fetch({ query: memberId }).then(res => res[0]);
+
       if (!member) {
-        toast.error("العضو غير موجود");
+        // محاولة البحث المباشر إذا فشل البحث العام
+        const profile = await utils.members.getProfile.fetch({ memberId }).catch(() => null);
+        if (profile) {
+          setSelectedMember(profile);
+          setIsDialogOpen(true);
+          return;
+        }
+        toast.error("العضو غير موجود بقاعدة البيانات");
         return;
       }
 
@@ -148,7 +162,7 @@ export default function Attendance() {
       setIsDialogOpen(true);
     } catch (error: any) {
       console.error("Attendance lookup error:", error);
-      toast.error(error.message || "العضو غير موجود أو حدث خطأ");
+      toast.error("حدث خطأ أثناء تحميل بيانات العضو");
     }
   };
 
