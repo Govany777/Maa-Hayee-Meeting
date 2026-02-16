@@ -122,12 +122,26 @@ export default function Attendance() {
         });
 
         if (code && code.data) {
-          console.log("Found QR code:", code.data);
-          // استخراج الـ ID من الكود ومسح أي مسافات
-          const memberIdFound = code.data.trim();
-          handleAttendance(memberIdFound);
-          stopCamera(); // إيقاف الكاميرا فور النجاح
-          return;
+          const rawData = code.data.trim();
+          let finalId = rawData;
+
+          try {
+            const qrData = JSON.parse(rawData);
+            if (qrData && typeof qrData === 'object' && qrData.memberId) {
+              finalId = qrData.memberId;
+            } else if (typeof qrData === 'number' || typeof qrData === 'string') {
+              finalId = qrData.toString();
+            }
+          } catch {
+            // It's a plain string, keep as is
+          }
+
+          if (finalId) {
+            console.log("Found QR code ID:", finalId);
+            handleAttendance(finalId);
+            stopCamera(); // إيقاف الكاميرا فور النجاح
+            return;
+          }
         }
       }
     }
@@ -143,17 +157,10 @@ export default function Attendance() {
 
     toast.info("جاري البحث عن العضو...");
     try {
-      // البحث عن العضو باستخدام الـ ID
-      const member = await utils.admin.searchMembers.fetch({ query: memberId }).then(res => res[0]);
+      // Use getProfile which we've made strict to handle memberId lookups
+      const member = await utils.members.getProfile.fetch({ memberId }).catch(() => null);
 
       if (!member) {
-        // محاولة البحث المباشر إذا فشل البحث العام
-        const profile = await utils.members.getProfile.fetch({ memberId }).catch(() => null);
-        if (profile) {
-          setSelectedMember(profile);
-          setIsDialogOpen(true);
-          return;
-        }
         toast.error("العضو غير موجود بقاعدة البيانات");
         return;
       }

@@ -91,19 +91,25 @@ export default function AttendanceScanner() {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-      if (code) {
+      if (code && code.data) {
+        const rawData = code.data.trim();
+        let finalId = rawData;
+
         try {
-          const qrData = JSON.parse(code.data);
-          if (qrData.memberId) {
-            setSearchId(qrData.memberId);
-            setIsScanning(false);
+          const qrData = JSON.parse(rawData);
+          if (qrData && typeof qrData === 'object' && qrData.memberId) {
+            finalId = qrData.memberId;
+          } else if (typeof qrData === 'number' || typeof qrData === 'string') {
+            finalId = qrData.toString();
           }
         } catch {
-          // محاولة استخدام البيانات مباشرة
-          if (code.data.trim()) {
-            setSearchId(code.data.trim());
-            setIsScanning(false);
-          }
+          // It's a plain string, keep as is
+        }
+
+        if (finalId) {
+          console.log("[Scanner] Successfully scanned ID:", finalId);
+          setSearchId(finalId);
+          setIsScanning(false);
         }
       }
     };
@@ -119,11 +125,21 @@ export default function AttendanceScanner() {
 
   // معالجة البحث
   useEffect(() => {
-    if (getMemberQuery.data) {
-      setScannedMember(getMemberQuery.data);
-      handleRecordAttendance(getMemberQuery.data);
+    // Only proceed if the query is successful, not fetching (new data), 
+    // and the memberId in the data matches what we searched for.
+    if (getMemberQuery.data && !getMemberQuery.isFetching) {
+      const member = getMemberQuery.data;
+      const currentId = searchId.trim();
+
+      // Verify this data is actually for the ID we just scanned
+      if (member.memberId === currentId || member.id === currentId) {
+        setScannedMember(member);
+        handleRecordAttendance(member);
+      } else {
+        console.warn("[Scanner] Data mismatch. Expected:", currentId, "Got:", member.memberId);
+      }
     }
-  }, [getMemberQuery.data]);
+  }, [getMemberQuery.data, getMemberQuery.isFetching, searchId]);
 
   // تسجيل الحضور
   const handleRecordAttendance = async (member: any) => {
