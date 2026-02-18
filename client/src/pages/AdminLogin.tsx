@@ -55,106 +55,99 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
-            Maa Hayee Meeting
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2 drop-shadow-sm">
+            Maa Hayee
           </h1>
-          <p className="text-gray-600">لوحة التحكم</p>
+          <p className="text-gray-700 font-bold text-lg opacity-80">لوحة التحكم المركزية</p>
         </div>
 
-        <Card className="p-8 shadow-xl">
-          <div className="flex justify-center mb-6">
-            <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-4 rounded-full">
-              <Lock className="w-8 h-8 text-blue-600" />
+        <Card className="p-10 shadow-2xl bg-white/60 backdrop-blur-xl border-white/20 rounded-3xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+          <div className="flex justify-center mb-8">
+            <div className="bg-gradient-to-br from-blue-100/50 to-indigo-100/50 p-5 rounded-3xl shadow-inner group transition-all duration-500 hover:scale-110">
+              <Lock className="w-10 h-10 text-blue-600 group-hover:rotate-12 transition-transform" />
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-center mb-2">تسجيل الدخول</h2>
-          <p className="text-center text-gray-600 text-sm mb-6">
-            أدخل بيانات اعتمادك للوصول إلى لوحة التحكم
+          <h2 className="text-3xl font-black text-center mb-2 text-gray-900">تسجيل الدخول</h2>
+          <p className="text-center text-gray-500 font-medium text-sm mb-8">
+            يرجى إدخال بيانات المسؤول للوصول للنظام
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">اسم المستخدم</label>
-              <div className="relative">
-                <User className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-gray-700 mr-2">اسم المستخدم</label>
+              <div className="relative group">
+                <User className="absolute right-4 top-4 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <Input
                   placeholder="أدخل اسم المستخدم"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pl-4 pr-10"
+                  className="pl-4 pr-12 h-14 bg-white/40 border-0 shadow-inner rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500"
                   dir="rtl"
                   disabled={isLoading}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">كلمة المرور</label>
-              <div className="relative">
-                <Lock className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-gray-700 mr-2">كلمة المرور</label>
+              <div className="relative group">
+                <Lock className="absolute right-4 top-4 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <Input
                   type="password"
                   placeholder="أدخل كلمة المرور"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-4 pr-10"
+                  className="pl-4 pr-12 h-14 bg-white/40 border-0 shadow-inner rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500"
                   dir="rtl"
                   disabled={isLoading}
                 />
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+            <div className="bg-blue-600/10 backdrop-blur-sm border border-blue-200/50 rounded-2xl p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-800">
-                استخدم بيانات اعتمادك الخاصة للوصول إلى لوحة التحكم
+              <p className="text-sm text-blue-900 font-medium">
+                تأكد من كتابة البيانات بشكل صحيح لتجنب قفل الحساب
               </p>
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black h-14 text-xl rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-95"
               disabled={isLoading}
             >
-              {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
+                  جاري التحقق...
+                </div>
+              ) : "دخول مباشر"}
             </Button>
           </form>
 
-          <div className="mt-6 space-y-4">
-            {/*
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                هل تريد إنشاء حساب جديد؟{" "}
-                <button
-                  onClick={() => setLocation("/admin-register")}
-                  className="text-blue-600 hover:text-blue-700 font-semibold"
-                >
-                  سجل هنا
-                </button>
-              </p>
-            </div> */}
-
-            <div className="border-t pt-4">
-              <button
-                onClick={() => setLocation("/")}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                <span>العودة للصفحة الرئيسية</span>
-              </button>
-            </div>
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <button
+              onClick={() => setLocation("/")}
+              className="w-full flex items-center justify-center gap-3 h-12 rounded-xl text-gray-600 font-bold hover:bg-gray-50 transition-all active:scale-95"
+            >
+              <Home className="w-5 h-5" />
+              <span>العودة للرئيسية</span>
+            </button>
           </div>
         </Card>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>نظام إدارة الحضور والغياب</p>
-          <p>© 2025 أقباط الشباب</p>
+        <div className="mt-10 text-center text-sm text-gray-900 font-bold opacity-60">
+          <p>Maa Hayee Meeting Management System</p>
+          <p>© 2025 All Rights Reserved</p>
         </div>
       </div>
     </div>
+
   );
 }

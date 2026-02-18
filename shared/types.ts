@@ -43,6 +43,8 @@ export interface InsertAdmin {
     isActive?: boolean;
 }
 
+export type AcademicStatus = "student" | "graduate";
+
 export interface Member {
     id: string;
     memberId: string;
@@ -53,6 +55,8 @@ export interface Member {
     dateOfBirth: Date | null;
     address: string | null;
     fatherOfConfession: string | null;
+    academicStatus: AcademicStatus | null;
+    academicYear: string | null;
     imageUrl: string | null;
     qrCode: string | null;
     status: MemberStatus;
@@ -69,6 +73,8 @@ export interface InsertMember {
     dateOfBirth?: Date | null;
     address?: string | null;
     fatherOfConfession?: string | null;
+    academicStatus?: AcademicStatus | null;
+    academicYear?: string | null;
     imageUrl?: string | null;
     qrCode?: string | null;
     status?: MemberStatus;

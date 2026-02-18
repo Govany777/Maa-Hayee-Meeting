@@ -217,20 +217,20 @@ export default function Attendance() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-transparent">
       {/* رأس الصفحة */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white/70 backdrop-blur-md shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
               تسجيل الحضور
             </h1>
-            <p className="text-sm text-gray-600">نظام مسح QR Code</p>
+            <p className="text-xs md:text-sm text-gray-600">نظام مسح QR Code المتطور</p>
           </div>
           <Button
             variant="outline"
             onClick={() => window.location.href = "/"}
-            className="gap-2"
+            className="gap-2 bg-white/50 backdrop-blur-sm"
           >
             <Home className="w-4 h-4" />
             الرئيسية
@@ -243,12 +243,12 @@ export default function Attendance() {
         if (!isAuthorized) setIsPassDialogOpen(true);
         else setIsPassDialogOpen(open);
       }}>
-        <DialogContent className="max-w-sm" onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="max-w-sm bg-white/80 backdrop-blur-xl border-white/20" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <div className="mx-auto bg-blue-100 p-3 rounded-full w-fit mb-4">
-              <Lock className="w-6 h-6 text-blue-600" />
+            <div className="mx-auto bg-blue-100/50 p-4 rounded-2xl w-fit mb-4">
+              <Lock className="w-8 h-8 text-blue-600" />
             </div>
-            <DialogTitle className="text-center">من فضلك أدخل كلمة المرور</DialogTitle>
+            <DialogTitle className="text-center text-xl font-bold">من فضلك أدخل كلمة المرور</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <Input
@@ -257,19 +257,19 @@ export default function Attendance() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handlePasswordSubmit()}
-              className="text-center text-2xl tracking-widest font-bold"
+              className="text-center text-2xl tracking-widest font-bold h-14 bg-white/50"
               autoFocus
             />
             <Button
               onClick={handlePasswordSubmit}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-14 text-lg shadow-lg shadow-blue-100"
             >
               دخول
             </Button>
             <Button
               variant="ghost"
               onClick={() => window.location.href = "/"}
-              className="w-full text-slate-500"
+              className="w-full text-slate-500 hover:bg-white/30"
             >
               العودة للرئيسية
             </Button>
@@ -280,130 +280,164 @@ export default function Attendance() {
       {isAuthorized && (
         <div className="animate-in fade-in duration-500">
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* الجزء الأيسر - مسح QR والبحث */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-8">
                 {/* التبويبات */}
-                <div className="flex gap-2 bg-white rounded-lg shadow p-2">
+                <div className="flex gap-2 bg-white/40 backdrop-blur-md rounded-2xl shadow-lg border border-white/30 p-2">
                   <button
                     onClick={() => setActiveTab("scanner")}
-                    className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${activeTab === "scanner"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all duration-300 ${activeTab === "scanner"
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                      : "text-gray-700 hover:bg-white/50"
                       }`}
                   >
-                    <QrCode className="w-4 h-4 inline mr-2" />
+                    <QrCode className="w-5 h-5 inline ml-2" />
                     مسح QR Code
                   </button>
                   <button
                     onClick={() => setActiveTab("search")}
-                    className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${activeTab === "search"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all duration-300 ${activeTab === "search"
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                      : "text-gray-700 hover:bg-white/50"
                       }`}
                   >
-                    <Search className="w-4 h-4 inline mr-2" />
-                    البحث
+                    <Search className="w-5 h-5 inline ml-2" />
+                    البحث اليدوي
                   </button>
                 </div>
 
                 {/* محتوى التبويبات */}
                 {activeTab === "scanner" ? (
-                  <Card className="p-6">
-                    <div className="space-y-4">
+                  <Card className="p-8 bg-white/60 backdrop-blur-lg border-0 shadow-xl rounded-3xl overflow-hidden">
+                    <div className="space-y-6">
                       {!cameraActive ? (
-                        <Button
-                          onClick={startCamera}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg"
-                        >
-                          <QrCode className="w-6 h-6 ml-2" />
-                          تشغيل الكاميرا
-                        </Button>
+                        <div className="flex flex-col items-center space-y-6">
+                          <div className="bg-blue-50 p-8 rounded-full">
+                            <QrCode className="w-16 h-16 text-blue-600" />
+                          </div>
+                          <div className="text-center">
+                            <h3 className="text-xl font-bold mb-2">كاميرا المسح جاهزة</h3>
+                            <p className="text-gray-600 mb-6">اضغط على الزر أدناه لتشغيل الكاميرا ومسح الكود</p>
+                          </div>
+                          <Button
+                            onClick={startCamera}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white h-16 text-xl rounded-2xl shadow-xl shadow-blue-100 transition-all active:scale-95"
+                          >
+                            <QrCode className="w-7 h-7 ml-3" />
+                            تشغيل الكاميرا الآن
+                          </Button>
+                        </div>
                       ) : (
-                        <Button
-                          onClick={stopCamera}
-                          className="w-full bg-red-600 hover:bg-red-700 text-white py-6 text-lg"
-                        >
-                          إيقاف الكاميرا
-                        </Button>
-                      )}
-
-                      {cameraActive && (
-                        <div className="space-y-4">
-                          <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            className="w-full rounded-lg border-2 border-blue-400"
-                            style={{ maxHeight: "400px" }}
-                          />
+                        <div className="space-y-6">
+                          <div className="relative group">
+                            <video
+                              ref={videoRef}
+                              autoPlay
+                              playsInline
+                              className="w-full rounded-2xl border-4 border-blue-400/30 shadow-2xl"
+                              style={{ maxHeight: "400px", objectFit: "cover" }}
+                            />
+                            <div className="absolute inset-0 border-2 border-white/20 rounded-2xl pointer-events-none"></div>
+                            <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                              LIVE
+                            </div>
+                          </div>
                           <canvas ref={canvasRef} style={{ display: "none" }} />
-                          <p className="text-center text-gray-600 text-sm">
-                            وجه كود QR نحو الكاميرا
-                          </p>
+                          <div className="flex flex-col gap-4">
+                            <p className="text-center text-gray-700 font-medium">
+                              يرجى توجيه الكود داخل إطار الكاميرا
+                            </p>
+                            <Button
+                              onClick={stopCamera}
+                              variant="destructive"
+                              className="w-full h-14 rounded-xl text-lg shadow-lg"
+                            >
+                              إيقاف الكاميرا
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
                   </Card>
                 ) : (
-                  <Card className="p-6">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">الرقم التعريفي</label>
+                  <Card className="p-8 bg-white/60 backdrop-blur-lg border-0 shadow-xl rounded-3xl">
+                    <div className="space-y-6">
+                      <div className="flex flex-col items-center text-center space-y-4 mb-4">
+                        <div className="bg-indigo-50 p-6 rounded-full">
+                          <Search className="w-10 h-10 text-indigo-600" />
+                        </div>
+                        <h3 className="text-xl font-bold">بحث يدوي</h3>
+                        <p className="text-gray-600">يمكنك تسجيل الحضور بإدخال الرقم التعريفي للعضو يدوياً</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-bold text-gray-700 mr-1">الرقم التعريفي (Member ID)</label>
                         <Input
-                          placeholder="أدخل الرقم التعريفي"
+                          placeholder="أدخل الرقم مثلاً: 123456"
                           value={searchId}
                           onChange={(e) => setSearchId(e.target.value)}
                           onKeyPress={(e) => e.key === "Enter" && handleSearchAttendance()}
+                          className="h-14 text-lg bg-white/50 rounded-xl"
                           dir="rtl"
                         />
                       </div>
                       <Button
                         onClick={handleSearchAttendance}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-14 text-lg rounded-xl shadow-lg shadow-indigo-100"
                       >
-                        بحث
+                        بحث وتسجيل حضور
                       </Button>
                     </div>
                   </Card>
                 )}
               </div>
 
-              {/* الجزء الأيمن - الويل */}
-              <div className="space-y-6">
+              {/* الجزء الأيمن - الإحصائيات والقائمة */}
+              <div className="space-y-8">
                 {/* بطاقة العداد */}
-                <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
-                  <div className="text-center space-y-4">
-                    <h3 className="text-lg font-bold">الحاضرون اليوم</h3>
-                    <div className="text-5xl font-bold text-blue-600">
+                <Card className="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-0 shadow-2xl rounded-3xl relative overflow-hidden group">
+                  <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                    <Users className="w-32 h-32" />
+                  </div>
+                  <div className="text-center space-y-4 relative z-10">
+                    <h3 className="text-lg font-bold opacity-90 uppercase tracking-wider">الحاضرون اليوم</h3>
+                    <div className="text-7xl font-black drop-shadow-lg">
                       {todayAttendance.length}
                     </div>
-                    <p className="text-gray-600 text-sm">شخص سجل حضوره</p>
+                    <p className="text-blue-100 font-medium">شخص سجل حضوره</p>
                   </div>
                 </Card>
 
                 {/* قائمة الحاضرين */}
-                <Card className="p-6">
-                  <h3 className="text-lg font-bold mb-4">قائمة الحاضرين</h3>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                <Card className="p-8 bg-white/60 backdrop-blur-lg border-0 shadow-xl rounded-3xl flex flex-col h-[500px]">
+                  <h3 className="text-xl font-bold mb-6 flex items-center justify-between">
+                    سجل الحضور اليوم
+                    <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">LIVE</span>
+                  </h3>
+                  <div className="space-y-3 overflow-y-auto pr-1 flex-1 custom-scrollbar">
                     {todayAttendance.length > 0 ? (
                       todayAttendance.map((record, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-sm rounded-2xl hover:bg-white/80 transition-all border border-transparent hover:border-blue-100 group"
                         >
-                          <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 text-blue-700 flex items-center justify-center text-base font-black shadow-sm group-hover:rotate-6 transition-transform">
                             {idx + 1}
                           </div>
                           <div className="flex-1">
-                            <p className="font-semibold text-sm">{record.memberName}</p>
-                            <p className="text-xs text-gray-600">{record.memberIdStr}</p>
+                            <p className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">{record.memberName}</p>
+                            <p className="text-xs text-gray-500 font-mono">{record.memberIdStr}</p>
                           </div>
-                          <div className="text-xs text-green-600 font-semibold">✓</div>
+                          <div className="bg-green-100 text-green-600 p-1.5 rounded-full shadow-inner">
+                            <RotateCcw className="w-3 h-3 rotate-45" />
+                          </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4">لا توجد سجلات حتى الآن</p>
+                      <div className="flex flex-col items-center justify-center h-full opacity-40">
+                        <Users className="w-16 h-16 mb-2" />
+                        <p className="text-center font-bold">لا توجد سجلات بعد</p>
+                      </div>
                     )}
                   </div>
                 </Card>
@@ -412,6 +446,7 @@ export default function Attendance() {
           </div>
         </div>
       )}
+
 
       {/* Dialog لتأكيد الحضور */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

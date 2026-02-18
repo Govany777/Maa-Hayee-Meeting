@@ -104,6 +104,8 @@ export const appRouter = router({
           dateOfBirth: z.date().optional(),
           address: z.string().optional(),
           fatherOfConfession: z.string().optional(),
+          academicStatus: z.enum(["student", "graduate"]).optional().nullable(),
+          academicYear: z.string().optional().nullable(),
           imageUrl: z.string().optional(),
         })
       )
@@ -122,6 +124,8 @@ export const appRouter = router({
           dateOfBirth: z.date().optional(),
           address: z.string().optional(),
           fatherOfConfession: z.string().optional(),
+          academicStatus: z.enum(["student", "graduate"]).optional().nullable(),
+          academicYear: z.string().optional().nullable(),
           imageUrl: z.string().optional(),
         })
       )
@@ -273,6 +277,8 @@ export const appRouter = router({
           dateOfBirth: z.string().optional(),
           address: z.string().optional(),
           fatherOfConfession: z.string().optional(),
+          academicStatus: z.enum(["student", "graduate"]).optional().nullable(),
+          academicYear: z.string().optional().nullable(),
           imageUrl: z.string().optional(),
         })
       )
@@ -302,6 +308,8 @@ export const appRouter = router({
             dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : null,
             address: input.address || null,
             fatherOfConfession: input.fatherOfConfession || null,
+            academicStatus: input.academicStatus || null,
+            academicYear: input.academicYear || null,
             imageUrl: input.imageUrl || null,
           });
           if (!newMember) {
@@ -317,6 +325,8 @@ export const appRouter = router({
             dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : member.dateOfBirth,
             address: input.address || member.address,
             fatherOfConfession: input.fatherOfConfession || member.fatherOfConfession,
+            academicStatus: input.academicStatus || member.academicStatus,
+            academicYear: input.academicYear || member.academicYear,
             imageUrl: input.imageUrl || member.imageUrl,
           });
           const updatedMember = await getMemberById(member.id);
@@ -416,6 +426,8 @@ export const appRouter = router({
           dateOfBirth: z.string().optional(),
           address: z.string().optional(),
           fatherOfConfession: z.string().optional(),
+          academicStatus: z.enum(["student", "graduate"]).optional().nullable(),
+          academicYear: z.string().optional().nullable(),
           imageUrl: z.string().optional(),
         })
       )
@@ -432,6 +444,8 @@ export const appRouter = router({
           dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : undefined,
           address: input.address,
           fatherOfConfession: input.fatherOfConfession,
+          academicStatus: input.academicStatus,
+          academicYear: input.academicYear,
           imageUrl: input.imageUrl,
         });
         return member;
