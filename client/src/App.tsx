@@ -42,25 +42,23 @@ function App() {
       >
         <TooltipProvider>
           <div className="relative min-h-screen">
-            {!isMemberDashboard && (
-              <Antigravity
-                count={600}
-                magnetRadius={8}
-                ringRadius={10}
-                waveSpeed={0.3}
-                waveAmplitude={1}
-                particleSize={0.4}
-                lerpSpeed={0.05}
-                color="#6366f1"
-                autoAnimate
-                particleVariance={1}
-                rotationSpeed={0.01}
-                depthFactor={1}
-                pulseSpeed={2}
-                particleShape="capsule"
-                fieldStrength={10}
-              />
-            )}
+            <Antigravity
+              count={500}
+              magnetRadius={8}
+              ringRadius={10}
+              waveSpeed={0.3}
+              waveAmplitude={1}
+              particleSize={0.3}
+              lerpSpeed={0.05}
+              color="#6366f1"
+              autoAnimate
+              particleVariance={1}
+              rotationSpeed={0.01}
+              depthFactor={1}
+              pulseSpeed={2}
+              particleShape="capsule"
+              fieldStrength={10}
+            />
             <div className="relative z-10 font-noto-arabic">
               <Toaster />
               <Router />

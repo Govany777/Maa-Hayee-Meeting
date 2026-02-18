@@ -21,14 +21,14 @@ interface AntigravityProps {
 }
 
 const AntigravityInner: React.FC<AntigravityProps> = ({
-    count = 600,
+    count = 500,
     magnetRadius = 10,
     ringRadius = 10,
     waveSpeed = 0.4,
     waveAmplitude = 1,
-    particleSize = 0.5,
+    particleSize = 0.3,
     lerpSpeed = 0.1,
-    color = '#FF9FFC',
+    color = '#6366f1',
     autoAnimate = false,
     particleVariance = 1,
     rotationSpeed = 0,
@@ -176,7 +176,7 @@ const AntigravityInner: React.FC<AntigravityProps> = ({
 
     return (
         <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-            {particleShape === 'capsule' && <capsuleGeometry args={[0.1, 0.4, 4, 8]} />}
+            {particleShape === 'capsule' && <capsuleGeometry args={[0.05, 0.4, 4, 8]} />}
             {particleShape === 'sphere' && <sphereGeometry args={[0.2, 16, 16]} />}
             {particleShape === 'box' && <boxGeometry args={[0.3, 0.3, 0.3]} />}
             {particleShape === 'tetrahedron' && <tetrahedronGeometry args={[0.3]} />}
