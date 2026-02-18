@@ -89,9 +89,10 @@ export default function MemberDashboard() {
 
       // Check for 30-day expiry (if stored in localStorage)
       if (localSession && parsedSession.lastLogin) {
+        const loginDate = new Date(parsedSession.lastLogin).getTime();
         const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
         const now = Date.now();
-        if (now - parsedSession.lastLogin > thirtyDaysInMs) {
+        if (now - loginDate > thirtyDaysInMs) {
           localStorage.removeItem("memberSession");
           clearAuthToken();
           toast.error("انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى");
@@ -101,10 +102,19 @@ export default function MemberDashboard() {
       }
 
       setMemberSession(parsedSession);
+      if (parsedSession.imageUrl) setProfileImage(parsedSession.imageUrl);
     } catch (e) {
       console.error("Session parsing error", e);
       setLocation("/members-registration");
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("memberSession");
+    sessionStorage.removeItem("memberSession");
+    clearAuthToken();
+    toast.success("تم تسجيل الخروج بنجاح");
+    setLocation("/members-registration");
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -592,116 +602,118 @@ export default function MemberDashboard() {
           <DialogHeader className="mb-6">
             <DialogTitle className="text-right text-2xl font-black text-slate-800">تعديل البيانات الشخصية</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleUpdateProfile} className="space-y-5">
-            <div className="space-y-1.5 px-1">
-              <Label htmlFor="edit-name" className="text-xs font-black text-slate-500 mr-2">الاسم الكامل</Label>
-              <Input
-                id="edit-name"
-                value={editForm.name}
-                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold"
-                required
-              />
-            </div>
-            <div className="space-y-1.5 px-1">
-              <Label htmlFor="edit-phone" className="text-xs font-black text-slate-500 mr-2">رقم الهاتف</Label>
-              <Input
-                id="edit-phone"
-                value={editForm.phone}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 11);
-                  setEditForm(prev => ({ ...prev, phone: val }));
-                }}
-                className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold font-mono"
-              />
-            </div>
-            <div className="space-y-1.5 px-1">
-              <Label className="text-xs font-black text-slate-500 mr-2">تاريخ الميلاد</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-right font-bold relative h-12 bg-white/50 border-0 shadow-inner rounded-xl hover:bg-white/80 ${!editForm.dateOfBirth && "text-muted-foreground"}`}
-                  >
-                    <Calendar className="absolute right-3 top-3.5 w-5 h-5 text-gray-400" />
-                    {editForm.dateOfBirth ? (
-                      format(new Date(editForm.dateOfBirth), "PPP", { locale: ar })
-                    ) : (
-                      <span>اختر التاريخ</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-3xl overflow-hidden border-0 shadow-2xl" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={editForm.dateOfBirth ? new Date(editForm.dateOfBirth) : undefined}
-                    onSelect={(date) => setEditForm(prev => ({ ...prev, dateOfBirth: date ? date.toISOString().split('T')[0] : "" }))}
-                    initialFocus
-                    captionLayout="dropdown"
-                    fromYear={1950}
-                    toYear={new Date().getFullYear()}
-                    locale={ar}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-1.5 px-1">
-              <Label className="text-xs font-black text-slate-500 mr-2">الحالة الدراسية</Label>
-              <Select
-                value={editForm.academicStatus}
-                onValueChange={(val: any) => setEditForm(prev => ({ ...prev, academicStatus: val, academicYear: val === "graduate" ? "" : prev.academicYear }))}
-              >
-                <SelectTrigger className="w-full h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold">
-                  <SelectValue placeholder="اختر الحالة" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-0 shadow-xl bg-white/90 backdrop-blur-lg">
-                  <SelectItem value="student" className="rounded-xl">طالب</SelectItem>
-                  <SelectItem value="graduate" className="rounded-xl">خريج</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {editForm.academicStatus === "student" && (
+          <form onSubmit={handleUpdateProfile} className="flex flex-col max-h-[70vh]">
+            <div className="space-y-5 overflow-y-auto px-1 py-4 flex-1">
               <div className="space-y-1.5 px-1">
-                <Label className="text-xs font-black text-slate-500 mr-2">السنة الدراسية</Label>
+                <Label htmlFor="edit-name" className="text-xs font-black text-slate-500 mr-2">الاسم الكامل</Label>
+                <Input
+                  id="edit-name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5 px-1">
+                <Label htmlFor="edit-phone" className="text-xs font-black text-slate-500 mr-2">رقم الهاتف</Label>
+                <Input
+                  id="edit-phone"
+                  value={editForm.phone}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    setEditForm(prev => ({ ...prev, phone: val }));
+                  }}
+                  className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold font-mono"
+                />
+              </div>
+              <div className="space-y-1.5 px-1">
+                <Label className="text-xs font-black text-slate-500 mr-2">تاريخ الميلاد</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-right font-bold relative h-12 bg-white/50 border-0 shadow-inner rounded-xl hover:bg-white/80 ${!editForm.dateOfBirth && "text-muted-foreground"}`}
+                    >
+                      <Calendar className="absolute right-3 top-3.5 w-5 h-5 text-gray-400" />
+                      {editForm.dateOfBirth ? (
+                        format(new Date(editForm.dateOfBirth), "PPP", { locale: ar })
+                      ) : (
+                        <span>اختر التاريخ</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 rounded-3xl overflow-hidden border-0 shadow-2xl" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={editForm.dateOfBirth ? new Date(editForm.dateOfBirth) : undefined}
+                      onSelect={(date) => setEditForm(prev => ({ ...prev, dateOfBirth: date ? date.toISOString().split('T')[0] : "" }))}
+                      initialFocus
+                      captionLayout="dropdown"
+                      fromYear={1950}
+                      toYear={new Date().getFullYear()}
+                      locale={ar}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-1.5 px-1">
+                <Label className="text-xs font-black text-slate-500 mr-2">الحالة الدراسية</Label>
                 <Select
-                  value={editForm.academicYear}
-                  onValueChange={(val) => setEditForm(prev => ({ ...prev, academicYear: val }))}
+                  value={editForm.academicStatus}
+                  onValueChange={(val: any) => setEditForm(prev => ({ ...prev, academicStatus: val, academicYear: val === "graduate" ? "" : prev.academicYear }))}
                 >
                   <SelectTrigger className="w-full h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold">
-                    <SelectValue placeholder="اختر السنة" />
+                    <SelectValue placeholder="اختر الحالة" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-0 shadow-xl bg-white/90 backdrop-blur-lg">
-                    {["أولى", "ثانية", "ثالثة", "رابعة", "خامسة", "سادسة"].map(year => (
-                      <SelectItem key={year} value={year} className="rounded-xl">{year}</SelectItem>
-                    ))}
+                    <SelectItem value="student" className="rounded-xl">طالب</SelectItem>
+                    <SelectItem value="graduate" className="rounded-xl">خريج</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
-            <div className="space-y-1.5 px-1">
-              <Label htmlFor="edit-address" className="text-xs font-black text-slate-500 mr-2">العنوان</Label>
-              <Input
-                id="edit-address"
-                value={editForm.address}
-                onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
-                className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold"
-              />
+              {editForm.academicStatus === "student" && (
+                <div className="space-y-1.5 px-1">
+                  <Label className="text-xs font-black text-slate-500 mr-2">السنة الدراسية</Label>
+                  <Select
+                    value={editForm.academicYear}
+                    onValueChange={(val) => setEditForm(prev => ({ ...prev, academicYear: val }))}
+                  >
+                    <SelectTrigger className="w-full h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold">
+                      <SelectValue placeholder="اختر السنة" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-0 shadow-xl bg-white/90 backdrop-blur-lg">
+                      {["أولى", "ثانية", "ثالثة", "رابعة", "خامسة", "سادسة"].map(year => (
+                        <SelectItem key={year} value={year} className="rounded-xl">{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="space-y-1.5 px-1">
+                <Label htmlFor="edit-address" className="text-xs font-black text-slate-500 mr-2">العنوان</Label>
+                <Input
+                  id="edit-address"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                  className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold"
+                />
+              </div>
+              <div className="space-y-1.5 px-1">
+                <Label htmlFor="edit-father" className="text-xs font-black text-slate-500 mr-2">أب الاعتراف</Label>
+                <Input
+                  id="edit-father"
+                  value={editForm.fatherOfConfession}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, fatherOfConfession: e.target.value }))}
+                  className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5 px-1">
-              <Label htmlFor="edit-father" className="text-xs font-black text-slate-500 mr-2">أب الاعتراف</Label>
-              <Input
-                id="edit-father"
-                value={editForm.fatherOfConfession}
-                onChange={(e) => setEditForm(prev => ({ ...prev, fatherOfConfession: e.target.value }))}
-                className="h-12 bg-white/50 border-0 shadow-inner rounded-xl font-bold"
-              />
-            </div>
-            <DialogFooter className="mt-8 gap-3">
-              <Button type="submit" disabled={isLoading} className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 font-black text-lg shadow-xl shadow-blue-100 transition-all active:scale-95">
-                {isLoading ? "جاري الحفظ..." : "حفظ التغييرات"}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1 h-14 rounded-2xl font-bold border-2">
+            <DialogFooter className="mt-6 gap-3 pt-6 border-t border-slate-100 flex flex-row">
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1 h-14 rounded-2xl font-bold border-2 order-2 md:order-1">
                 إلغاء
+              </Button>
+              <Button type="submit" disabled={isLoading} className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 font-black text-lg shadow-xl shadow-blue-100 transition-all active:scale-95 text-white order-1 md:order-2">
+                {isLoading ? "جاري الحفظ..." : "حفظ التعديلات"}
               </Button>
             </DialogFooter>
           </form>

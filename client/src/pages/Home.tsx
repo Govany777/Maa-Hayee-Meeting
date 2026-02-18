@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-transparent">
       {/* رأس الصفحة */}
-      <div className="bg-white/70 backdrop-blur-md shadow-sm border-b sticky top-0 z-50">
+      <div className="bg-white/70 backdrop-blur-md shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
           <div className="flex justify-center mb-2">
             <img src="/logo.png" alt="Maa Hayee Meeting" className="w-20 h-20 md:w-28 md:h-28 object-contain" />

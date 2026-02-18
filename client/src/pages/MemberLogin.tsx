@@ -12,10 +12,33 @@ export default function MemberLogin() {
   const [, setLocation] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loginMutation = trpc.members.login.useMutation();
+
+  // Auto-login check
+  useState(() => {
+    const savedSession = localStorage.getItem("memberSession") || sessionStorage.getItem("memberSession");
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        // Check if session is older than 30 days
+        if (session.lastLogin) {
+          const loginDate = new Date(session.lastLogin);
+          const now = new Date();
+          const diffDays = Math.ceil(Math.abs(now.getTime() - loginDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays < 30) {
+            if (session.sessionToken) setAuthToken(session.sessionToken);
+            window.location.href = "/member-dashboard";
+          }
+        }
+      } catch (e) {
+        console.error("Session parse error", e);
+      }
+    }
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,10 +52,19 @@ export default function MemberLogin() {
     setIsLoading(true);
     try {
       const result = await loginMutation.mutateAsync({ username, password });
+
+      const sessionData = { ...result, lastLogin: new Date().toISOString() };
+
       if (result.sessionToken) {
         setAuthToken(result.sessionToken);
       }
-      sessionStorage.setItem("memberSession", JSON.stringify(result));
+
+      if (rememberMe) {
+        localStorage.setItem("memberSession", JSON.stringify(sessionData));
+      } else {
+        sessionStorage.setItem("memberSession", JSON.stringify(sessionData));
+      }
+
       toast.success("تم تسجيل الدخول بنجاح");
       setLocation("/member-dashboard");
     } catch (error: any) {
@@ -95,22 +127,35 @@ export default function MemberLogin() {
             </div>
           </div>
 
+          <div className="flex items-center space-x-2 space-x-reverse mb-2">
+            <input
+              type="checkbox"
+              id="remember"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="remember" className="text-sm font-bold text-gray-700 cursor-pointer">
+              تذكرني لمدة شهر
+            </label>
+          </div>
+
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-black text-lg shadow-xl shadow-blue-200 transition-all active:scale-95 text-white"
             disabled={isLoading}
           >
             {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
           </Button>
         </form>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-8 space-y-4">
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 font-bold">
               ليس لديك حساب؟{" "}
               <button
-                onClick={() => setLocation("/member-register")}
-                className="text-blue-600 hover:text-blue-700 font-semibold"
+                onClick={() => setLocation("/members-registration")}
+                className="text-blue-600 hover:text-blue-700 font-black border-b-2 border-blue-600/30"
               >
                 أنشئ حساب جديد
               </button>
