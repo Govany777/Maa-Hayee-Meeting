@@ -57,14 +57,20 @@ const MONTHS_AR = [
 
 // Helper Component for Member Card
 function MemberCard({ member, onEdit, onDelete, onViewQr }: any) {
+  const [showOverlay, setShowOverlay] = useState(false);
+
   return (
-    <Card className="p-0 overflow-hidden group hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 border border-white/20 bg-white/40 backdrop-blur-md rounded-[2.5rem] relative">
+    <Card
+      className="p-0 overflow-hidden transition-all duration-500 border border-white/20 bg-white/40 backdrop-blur-md rounded-[2.5rem] relative cursor-pointer"
+      onClick={() => setShowOverlay(!showOverlay)}
+      onMouseLeave={() => setShowOverlay(false)}
+    >
       <div className="relative aspect-square bg-slate-100/30 overflow-hidden border-b border-white/10">
         {member.imageUrl ? (
           <img
             src={member.imageUrl}
             alt={member.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className={`w-full h-full object-cover transition-transform duration-700 ${showOverlay ? 'scale-110' : ''} group-hover:scale-110`}
             onError={(e) => {
               (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&size=256`;
             }}
@@ -77,30 +83,39 @@ function MemberCard({ member, onEdit, onDelete, onViewQr }: any) {
         )}
 
         {/* QR Code Mini Preview */}
-        <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-xl z-10 scale-90 origin-top-left border border-white transition-transform group-hover:scale-100">
+        <div className={`absolute top-4 left-4 bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-xl z-10 origin-top-left border border-white transition-transform ${showOverlay ? 'scale-100' : 'scale-90'} group-hover:scale-100`}>
           <QRCodeGenerator value={member.memberId || member.memberIdSequential?.toString() || member.id} size={42} includeMargin={false} />
         </div>
 
-        {/* Hover Actions Overlay */}
-        <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4 z-20">
+        {/* Actions Overlay */}
+        <div className={`absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] transition-all duration-300 flex items-center justify-center gap-4 z-20 ${showOverlay ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} group-hover:opacity-100 group-hover:pointer-events-auto`}>
           <Button
             size="icon"
-            className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-blue-600 hover:bg-blue-600 hover:text-white transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
-            onClick={() => onViewQr(member)}
+            className={`h-14 w-14 rounded-2xl shadow-2xl bg-white text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 ${showOverlay ? 'translate-y-0' : 'translate-y-4'} group-hover:translate-y-0`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewQr(member);
+            }}
           >
             <QrCode className="h-7 w-7" />
           </Button>
           <Button
             size="icon"
-            className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-amber-500 hover:bg-amber-500 hover:text-white transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
-            onClick={() => onEdit(member)}
+            className={`h-14 w-14 rounded-2xl shadow-2xl bg-white text-amber-500 hover:bg-amber-500 hover:text-white transition-all duration-300 delay-75 ${showOverlay ? 'translate-y-0' : 'translate-y-4'} group-hover:translate-y-0`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(member);
+            }}
           >
             <Edit2 className="h-7 w-7" />
           </Button>
           <Button
             size="icon"
-            className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-red-500 hover:bg-red-500 hover:text-white transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-150"
-            onClick={() => onDelete(member.id, member.name)}
+            className={`h-14 w-14 rounded-2xl shadow-2xl bg-white text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 delay-150 ${showOverlay ? 'translate-y-0' : 'translate-y-4'} group-hover:translate-y-0`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(member.id, member.name);
+            }}
           >
             <Trash2 className="h-7 w-7" />
           </Button>
