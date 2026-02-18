@@ -239,13 +239,6 @@ export default function MemberDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    clearAuthToken();
-    sessionStorage.removeItem("memberSession");
-    localStorage.removeItem("memberSession");
-    toast.success("تم تسجيل الخروج بنجاح");
-    setLocation("/members-registration");
-  };
 
   // استدعاء useQuery بدون شرط (يجب استدعاء جميع الـ hooks بدون شروط)
   const profileQuery = trpc.members.getProfile.useQuery(
